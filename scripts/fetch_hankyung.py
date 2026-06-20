@@ -6,8 +6,13 @@
 1. Google Cloud Console → 프로젝트 생성 → Drive API 활성화
 2. IAM → 서비스 계정 생성 → JSON 키 다운로드
 3. 구글 드라이브 'Joshua 증권' 폴더를 서비스 계정 이메일과 공유 (뷰어)
-4. 'Joshua 증권/리포트 출력' 폴더는 편집자 권한 공유
+4. 'Joshua 증권/리포트 출력' 폴더는 편집자 권한으로 공유
 5. JSON 키 전체 내용을 GitHub 시크릿 GOOGLE_CREDENTIALS 로 등록
+
+핵심 주의사항:
+- 서비스 계정은 자신의 빈 Drive를 가짐. 'root' 기준 검색은 공유 폴더를 찾지 못함.
+- 모든 API 호출에 supportsAllDrives=True, includeItemsFromAllDrives=True 필요.
+- 최상위 폴더("Joshua 증권") 탐색 시 parent 조건 없이 이름만으로 검색.
 """
 
 import io
@@ -27,6 +32,9 @@ SCOPES = ["https://www.googleapis.com/auth/drive"]
 REPORT_DIR = "data/reports"
 CATEGORIES = ["경제일반", "산업/기업", "국제", "정치/정책", "금융/증권", "부동산"]
 
+# 공통 파라미터: 서비스 계정이 공유 드라이브까지 검색하도록
+_DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
+
 
 # ── Google Drive 유틸 ──────────────────────────────────────────────────────────
 
@@ -36,30 +44,52 @@ def get_drive_service():
     return build("drive", "v3", credentials=creds)
 
 
-def find_folder(service, name: str, parent_id: str = "root") -> str | None:
-    q = (
-        f"name='{name}' and mimeType='application/vnd.google-apps.folder'"
-        f" and '{parent_id}' in parents and trashed=false"
-    )
-    res = service.files().list(q=q, fields="files(id,name)").execute()
+def find_folder(service, name: str, parent_id: str | None = None) -> str | None:
+    """
+    폴더를 이름으로 검색하여 ID 반환.
+    parent_id=None 이면 전체 Drive에서 검색 (최상위 공유 폴더 탐색용).
+    """
+    conditions = [
+        f"name='{name}'",
+        "mimeType='application/vnd.google-apps.folder'",
+        "trashed=false",
+    ]
+    if parent_id:
+        conditions.append(f"'{parent_id}' in parents")
+
+    print(f"  폴더 검색: '{name}'" + (f" (parent={parent_id})" if parent_id else " (전체 Drive)"))
+    res = service.files().list(
+        q=" and ".join(conditions),
+        fields="files(id,name,parents)",
+        **_DRIVE_PARAMS,
+    ).execute()
     files = res.get("files", [])
-    return files[0]["id"] if files else None
+    if files:
+        print(f"    → 발견: {files[0]['name']} (id={files[0]['id']})")
+        return files[0]["id"]
+    print(f"    → 없음")
+    return None
 
 
 def list_pdfs(service, folder_id: str, date_str: str) -> list[dict]:
-    """date_str(YYYYMMDD)이 이름에 포함된 PDF 목록 반환"""
+    """date_str(YYYYMMDD)을 이름에 포함하는 PDF 목록 반환"""
     q = (
-        f"name contains '{date_str}' and mimeType='application/pdf'"
-        f" and '{folder_id}' in parents and trashed=false"
+        f"name contains '{date_str}'"
+        f" and mimeType='application/pdf'"
+        f" and '{folder_id}' in parents"
+        f" and trashed=false"
     )
     res = service.files().list(
-        q=q, fields="files(id,name)", orderBy="name"
+        q=q,
+        fields="files(id,name)",
+        orderBy="name",
+        **_DRIVE_PARAMS,
     ).execute()
     return res.get("files", [])
 
 
 def download_file(service, file_id: str) -> bytes:
-    req = service.files().get_media(fileId=file_id)
+    req = service.files().get_media(fileId=file_id, supportsAllDrives=True)
     buf = io.BytesIO()
     dl = MediaIoBaseDownload(buf, req)
     done = False
@@ -72,7 +102,9 @@ def download_file(service, file_id: str) -> bytes:
 def upload_html(service, folder_id: str, html: str, filename: str) -> None:
     """HTML 파일을 드라이브에 업로드 (기존 파일 덮어쓰기)"""
     q = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
-    existing = service.files().list(q=q, fields="files(id)").execute().get("files", [])
+    existing = service.files().list(
+        q=q, fields="files(id)", **_DRIVE_PARAMS
+    ).execute().get("files", [])
 
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".html", delete=False, encoding="utf-8"
@@ -83,10 +115,14 @@ def upload_html(service, folder_id: str, html: str, filename: str) -> None:
     media = MediaFileUpload(tmp, mimetype="text/html")
     try:
         if existing:
-            service.files().update(fileId=existing[0]["id"], media_body=media).execute()
+            service.files().update(
+                fileId=existing[0]["id"], media_body=media, supportsAllDrives=True
+            ).execute()
         else:
             service.files().create(
-                body={"name": filename, "parents": [folder_id]}, media_body=media
+                body={"name": filename, "parents": [folder_id]},
+                media_body=media,
+                supportsAllDrives=True,
             ).execute()
         print(f"  드라이브 업로드: {filename}")
     finally:
@@ -121,10 +157,7 @@ def analyze(text: str, date_display: str) -> dict:
         system=[
             {
                 "type": "text",
-                "text": (
-                    "당신은 한국 경제 전문 에디터입니다. "
-                    "신문 텍스트를 읽고 주요 기사를 정확히 분류·요약합니다."
-                ),
+                "text": "당신은 한국 경제 전문 에디터입니다. 신문 텍스트를 읽고 주요 기사를 정확히 분류·요약합니다.",
                 "cache_control": {"type": "ephemeral"},
             }
         ],
@@ -166,7 +199,10 @@ def build_html(categories: dict, date_display: str) -> str:
             f"""<div style="background:#f6f8fa;border-radius:8px;padding:14px 18px;margin-bottom:10px">
               <div style="font-weight:700;margin-bottom:6px">{a.get('title','')}</div>
               <div style="font-size:.88rem;color:#57606a;line-height:1.7">{a.get('summary','')}</div>
-              <div style="margin-top:8px">{''.join(f'<span style="background:#ddf4ff;color:#0969da;border-radius:4px;padding:1px 8px;font-size:.72rem;margin-right:4px">{k}</span>' for k in a.get('keywords',[]))}</div>
+              <div style="margin-top:8px">{''.join(
+                  f'<span style="background:#ddf4ff;color:#0969da;border-radius:4px;padding:1px 8px;font-size:.72rem;margin-right:4px">{k}</span>'
+                  for k in a.get('keywords', [])
+              )}</div>
             </div>"""
             for a in articles
         )
@@ -174,18 +210,15 @@ def build_html(categories: dict, date_display: str) -> str:
         <div style="margin-bottom:28px">
           <h2 style="font-size:1rem;color:#cf222e;border-left:4px solid #cf222e;padding-left:10px;margin-bottom:12px">
             {ICONS.get(cat,'')} {cat}
-          </h2>
-          {rows}
+          </h2>{rows}
         </div>"""
 
     return f"""<!DOCTYPE html>
-<html lang="ko">
-<head><meta charset="UTF-8">
+<html lang="ko"><head><meta charset="UTF-8">
 <title>한경 리포트 {date_display}</title>
 <style>body{{font-family:'Malgun Gothic',sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#1f2328;line-height:1.7}}
 h1{{color:#0969da;border-bottom:2px solid #0969da;padding-bottom:8px}}</style>
-</head>
-<body>
+</head><body>
 <h1>📰 한국경제신문 리포트</h1>
 <p style="color:#57606a">{date_display} · Generated by Claude AI</p>
 {sections}
@@ -220,45 +253,54 @@ def main() -> None:
 
     service = get_drive_service()
 
-    # 폴더 탐색
+    # ── 폴더 탐색 ──
+    # 1단계: 최상위 "Joshua 증권" — parent 없이 전체 Drive 검색 (공유된 폴더)
     root_id = find_folder(service, "Joshua 증권")
     if not root_id:
-        raise RuntimeError("'Joshua 증권' 폴더를 찾을 수 없습니다. 서비스 계정 공유 여부 확인.")
+        raise RuntimeError(
+            "'Joshua 증권' 폴더를 찾을 수 없습니다.\n"
+            "서비스 계정 이메일로 해당 폴더를 공유했는지 확인하세요."
+        )
+
+    # 2단계: 하위 폴더들은 parent_id 지정하여 검색
     hk_id = find_folder(service, "한경 PDF", root_id)
     if not hk_id:
         raise RuntimeError("'한경 PDF' 폴더를 찾을 수 없습니다.")
+
     month_id = find_folder(service, month_folder, hk_id)
     if not month_id:
         print(f"'{month_folder}' 폴더 없음. 종료.")
         return
 
-    # PDF 목록
+    # ── PDF 목록 ──
     pdfs = list_pdfs(service, month_id, date_str)
     if not pdfs:
-        print(f"{date_str} PDF 없음. 종료.")
+        print(f"  {date_str} 날짜 PDF 없음. 종료.")
         return
     print(f"  {len(pdfs)}개 PDF 발견")
 
-    # 텍스트 추출
+    # ── 텍스트 추출 ──
     texts = []
     for item in pdfs:
-        print(f"  추출: {item['name']}")
+        print(f"  다운로드: {item['name']}")
         data = download_file(service, item["id"])
         t = extract_text(data, item["name"])
         if t:
             texts.append(t)
+        else:
+            print(f"    ※ 텍스트 없음 (이미지 기반 페이지일 수 있음)")
 
     combined = "\n\n".join(texts)
     print(f"  총 {len(combined):,}자 추출")
     if not combined.strip():
-        print("  텍스트 추출 실패 (이미지 기반 PDF 가능). 종료.")
+        print("  텍스트 추출 실패. 종료.")
         return
 
-    # Claude 분석
+    # ── Claude 분석 ──
     print("  Claude 분석 중...")
     categories = analyze(combined, date_display)
 
-    # 로컬 저장
+    # ── 로컬 저장 ──
     os.makedirs(REPORT_DIR, exist_ok=True)
     report = {
         "date": date_display,
@@ -273,7 +315,7 @@ def main() -> None:
 
     update_index(date_display)
 
-    # 드라이브 HTML 업로드
+    # ── 드라이브 HTML 업로드 ──
     out_id = find_folder(service, "리포트 출력", root_id)
     if out_id:
         html = build_html(categories, date_display)
