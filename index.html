@@ -198,6 +198,82 @@
       display: none;
     }
 
+    /* ── 한경 뉴스 리포트 ── */
+    .report-header { display: flex; justify-content: space-between; align-items: center; }
+    .report-date-select {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 10px; color: var(--text);
+      font-size: 0.8rem; cursor: pointer; font-family: inherit;
+    }
+    .report-cat-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .report-cat-tab {
+      padding: 4px 12px; border-radius: 20px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      color: var(--text-sub); font-size: 0.76rem; cursor: pointer;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .report-cat-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .report-cat-section { margin-bottom: 14px; }
+    .report-cat-heading {
+      font-size: 0.84rem; font-weight: 600;
+      padding: 9px 14px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 6px 6px 0 0;
+      border-bottom: none; display: flex; justify-content: space-between;
+      align-items: center; cursor: pointer; user-select: none;
+    }
+    .report-cat-heading:hover { background: var(--bg-card-hover); }
+    .report-cat-count { font-size: 0.7rem; color: var(--text-sub); }
+    .report-articles-list { border: 1px solid var(--border); border-radius: 0 0 6px 6px; overflow: hidden; }
+    .report-article {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      background: var(--bg-card); transition: background 0.12s;
+    }
+    .report-article:last-child { border-bottom: none; }
+    .report-article:hover { background: var(--bg-card-hover); }
+    .report-article-title { font-size: 0.86rem; font-weight: 600; margin-bottom: 5px; }
+    .report-article-summary { font-size: 0.79rem; color: var(--text-sub); line-height: 1.7; }
+    .report-article-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 6px; }
+    .report-keywords { display: flex; flex-wrap: wrap; gap: 4px; }
+    .report-kw { background: #ddf4ff; color: #0969da; border-radius: 4px; padding: 1px 8px; font-size: 0.68rem; }
+    .report-trend-btn {
+      font-size: 0.7rem; color: var(--blue); background: none;
+      border: 1px solid rgba(9,105,218,0.4); border-radius: 4px;
+      padding: 2px 9px; cursor: pointer; white-space: nowrap; font-family: inherit;
+    }
+    .report-trend-btn:hover { background: rgba(9,105,218,0.07); }
+    .report-msg { text-align: center; color: var(--text-sub); padding: 32px; font-size: 0.84rem; }
+
+    /* 누적 흐름 패널 */
+    .trend-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.15);
+      z-index: 200; display: none;
+    }
+    .trend-overlay.open { display: block; }
+    .trend-panel {
+      position: fixed; right: 0; top: 0; bottom: 0;
+      width: min(460px, 95vw); background: var(--bg-card);
+      border-left: 1px solid var(--border); z-index: 201;
+      display: flex; flex-direction: column;
+      transform: translateX(100%); transition: transform 0.22s ease;
+    }
+    .trend-panel.open { transform: translateX(0); }
+    .trend-panel-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    }
+    .trend-panel-label { font-size: 0.68rem; color: var(--text-sub); margin-bottom: 4px; }
+    .trend-panel-title { font-size: 0.88rem; font-weight: 600; }
+    .trend-close-btn {
+      background: none; border: none; color: var(--text-sub);
+      font-size: 1.1rem; cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0;
+    }
+    .trend-body { overflow-y: auto; flex: 1; padding: 16px 20px; }
+    .trend-item { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .trend-item:last-child { border-bottom: none; }
+    .trend-item-meta { font-size: 0.7rem; color: var(--blue); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+    .trend-item-title { font-size: 0.84rem; font-weight: 600; margin-bottom: 4px; }
+    .trend-item-summary { font-size: 0.77rem; color: var(--text-sub); line-height: 1.65; }
+
     /* Responsive */
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -349,6 +425,34 @@
         <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-sub)">로딩 중...</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- 한경 뉴스 리포트 -->
+  <div class="section-title">📰 한경 뉴스 리포트</div>
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px" id="hankyung-wrap">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+      <div class="report-header">
+        <span style="font-size:0.75rem;color:var(--text-sub)" id="report-meta">로딩 중...</span>
+        <select class="report-date-select" id="report-date-sel" style="display:none"></select>
+      </div>
+      <div class="report-cat-tabs" id="report-cat-tabs"></div>
+    </div>
+    <div style="padding:14px 18px" id="report-body">
+      <div class="report-msg">리포트를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 누적 흐름 오버레이 -->
+  <div class="trend-overlay" id="trend-overlay" onclick="closeTrend()"></div>
+  <div class="trend-panel" id="trend-panel">
+    <div class="trend-panel-header">
+      <div style="flex:1;min-width:0">
+        <div class="trend-panel-label">누적 흐름</div>
+        <div class="trend-panel-title" id="trend-title"></div>
+      </div>
+      <button class="trend-close-btn" onclick="closeTrend()">✕</button>
+    </div>
+    <div class="trend-body" id="trend-body"></div>
   </div>
 
   <!-- AI 브리핑 -->
@@ -516,6 +620,174 @@
   }
 
   loadData();
+
+  // ══════════════════════════════════════════
+  //  한경 뉴스 리포트
+  // ══════════════════════════════════════════
+  const CAT_ICONS = {
+    '경제일반':'📊','산업/기업':'🏭','국제':'🌐',
+    '정치/정책':'🏛️','금융/증권':'💹','부동산':'🏢'
+  };
+  const RCACHE = {};      // date → report JSON
+  let rCatFilter = 'all';
+
+  async function loadReportIndex() {
+    try {
+      const res = await fetch(`data/reports/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const dates = idx.dates || [];
+      if (!dates.length) {
+        document.getElementById('report-meta').textContent = '아직 생성된 리포트가 없습니다.';
+        document.getElementById('report-body').innerHTML = '';
+        return;
+      }
+      const sel = document.getElementById('report-date-sel');
+      dates.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d; sel.appendChild(o);
+      });
+      sel.style.display = '';
+      sel.addEventListener('change', () => showReport(sel.value));
+
+      // 백그라운드에서 전체 리포트 로드 (누적 흐름용)
+      dates.forEach(d => fetchReport(d, true));
+      showReport(dates[0]);
+    } catch {
+      document.getElementById('report-meta').textContent = '리포트 인덱스를 불러올 수 없습니다.';
+      document.getElementById('report-body').innerHTML = '';
+    }
+  }
+
+  async function fetchReport(date, silent = false) {
+    if (RCACHE[date]) { if (!silent) renderReport(RCACHE[date]); return; }
+    try {
+      const res = await fetch(`data/reports/${date}.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      RCACHE[date] = await res.json();
+      if (!silent) renderReport(RCACHE[date]);
+    } catch {
+      if (!silent) document.getElementById('report-body').innerHTML =
+        `<div class="report-msg">${date} 리포트를 불러올 수 없습니다.</div>`;
+    }
+  }
+
+  function showReport(date) {
+    document.getElementById('report-date-sel').value = date;
+    fetchReport(date);
+  }
+
+  function renderReport(data) {
+    document.getElementById('report-meta').textContent =
+      `생성: ${data.generated_at || data.date}  ·  PDF ${data.pdf_count || '?'}페이지`;
+
+    const cats = Object.keys(data.categories || {});
+    const tabsEl = document.getElementById('report-cat-tabs');
+    tabsEl.innerHTML =
+      `<button class="report-cat-tab${rCatFilter==='all'?' active':''}" onclick="rFilter('all')">전체</button>` +
+      cats.map(c =>
+        `<button class="report-cat-tab${rCatFilter===c?' active':''}" data-cat="${c}" onclick="rFilter('${c}')">
+           ${CAT_ICONS[c]||''} ${c}
+         </button>`
+      ).join('');
+
+    const bodyEl = document.getElementById('report-body');
+    if (!cats.length) { bodyEl.innerHTML = '<div class="report-msg">분석 결과가 없습니다.</div>'; return; }
+
+    bodyEl.innerHTML = cats.map(cat => {
+      const arts = data.categories[cat] || [];
+      const hidden = rCatFilter !== 'all' && rCatFilter !== cat;
+      return `
+      <div class="report-cat-section" data-cat="${cat}" style="${hidden?'display:none':''}">
+        <div class="report-cat-heading" onclick="rToggle(this)">
+          <span>${CAT_ICONS[cat]||''} ${cat}</span>
+          <span class="report-cat-count">${arts.length}건 ▾</span>
+        </div>
+        <div class="report-articles-list">
+          ${arts.map((a,i) => `
+          <div class="report-article">
+            <div class="report-article-title">${a.title||''}</div>
+            <div class="report-article-summary">${a.summary||''}</div>
+            <div class="report-article-footer">
+              <div class="report-keywords">
+                ${(a.keywords||[]).map(k=>`<span class="report-kw">${k}</span>`).join('')}
+              </div>
+              <button class="report-trend-btn" onclick="openTrend(event,'${cat}',${i})">누적 흐름 →</button>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function rFilter(cat) {
+    rCatFilter = cat;
+    document.querySelectorAll('.report-cat-tab').forEach(el => {
+      el.classList.toggle('active',
+        cat === 'all' ? el.textContent.trim() === '전체'
+                      : (el.dataset.cat === cat)
+      );
+    });
+    document.querySelectorAll('.report-cat-section').forEach(el => {
+      el.style.display = (cat === 'all' || el.dataset.cat === cat) ? '' : 'none';
+    });
+  }
+
+  function rToggle(heading) {
+    const list = heading.nextElementSibling;
+    const closing = list.style.display !== 'none';
+    list.style.display = closing ? 'none' : '';
+    const cnt = heading.querySelector('.report-cat-count');
+    cnt.textContent = cnt.textContent.replace(/[▾▸]/, closing ? '▸' : '▾');
+  }
+
+  function openTrend(ev, cat, idx) {
+    ev.stopPropagation();
+    const date = document.getElementById('report-date-sel').value;
+    const article = RCACHE[date]?.categories?.[cat]?.[idx];
+    if (!article) return;
+
+    const kws = article.keywords || [];
+    document.getElementById('trend-title').textContent = article.title;
+
+    const matches = [];
+    Object.entries(RCACHE)
+      .sort(([a],[b]) => b.localeCompare(a))
+      .forEach(([d, rep]) => {
+        if (d === date) return;
+        Object.entries(rep.categories || {}).forEach(([c, arts]) => {
+          arts.forEach(a => {
+            const overlap = kws.filter(k => (a.keywords||[]).includes(k));
+            if (overlap.length) matches.push({ date: d, cat: c, article: a, overlap });
+          });
+        });
+      });
+
+    const bodyEl = document.getElementById('trend-body');
+    bodyEl.innerHTML = matches.length
+      ? matches.map(m => `
+        <div class="trend-item">
+          <div class="trend-item-meta">${m.date} · ${m.cat}</div>
+          <div class="trend-item-title">${m.article.title}</div>
+          <div class="trend-item-summary">${m.article.summary}</div>
+          <div class="report-keywords" style="margin-top:6px">
+            ${m.overlap.map(k=>`<span class="report-kw">${k}</span>`).join('')}
+          </div>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--text-sub);padding:40px 0;font-size:.84rem">관련 이전 기사가 없습니다.</div>';
+
+    document.getElementById('trend-overlay').classList.add('open');
+    document.getElementById('trend-panel').classList.add('open');
+  }
+
+  function closeTrend() {
+    document.getElementById('trend-overlay').classList.remove('open');
+    document.getElementById('trend-panel').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTrend(); });
+
+  loadReportIndex();
 </script>
 </body>
 </html>
