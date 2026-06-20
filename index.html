@@ -221,6 +221,94 @@
     .placeholder-wrap h2 { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
     .placeholder-wrap p { font-size: 0.85rem; }
 
+    /* ── KB 리포트 경제 공부 ── */
+    .kb-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .kb-date-select {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 10px; color: var(--text);
+      font-size: 0.78rem; cursor: pointer; font-family: inherit;
+    }
+    .kb-meta { font-size: 0.72rem; color: var(--text-sub); }
+    .kb-section-title {
+      font-size: 0.78rem; font-weight: 600; color: var(--text);
+      margin: 20px 0 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .kb-section-title::before {
+      content: ''; display: inline-block; width: 3px; height: 14px;
+      background: var(--blue); border-radius: 2px;
+    }
+    .kb-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .kb-summary-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px;
+    }
+    .kb-summary-label {
+      font-size: 0.68rem; font-weight: 600; color: var(--text-sub);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .kb-summary-text { font-size: 0.81rem; line-height: 1.8; color: var(--text); }
+    .kb-morning-label { color: #0969da; }
+    .kb-close-label   { color: #8250df; }
+    .kb-causal-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 10px;
+    }
+    .kb-causal-title { font-size: 0.86rem; font-weight: 600; margin-bottom: 10px; }
+    .kb-causal-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: start; margin-bottom: 10px; }
+    .kb-causal-box {
+      border-radius: 6px; padding: 8px 12px; font-size: 0.76rem; line-height: 1.65;
+    }
+    .kb-causal-morning { background: rgba(9,105,218,0.06); border: 1px solid rgba(9,105,218,0.2); color: var(--text); }
+    .kb-causal-close   { background: rgba(130,80,223,0.06); border: 1px solid rgba(130,80,223,0.2); color: var(--text); }
+    .kb-causal-arrow   { font-size: 1.1rem; color: var(--text-sub); display: flex; align-items: center; padding-top: 8px; }
+    .kb-causal-box-label { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .kb-causal-box-label.m { color: #0969da; }
+    .kb-causal-box-label.c { color: #8250df; }
+    .kb-mechanism {
+      font-size: 0.76rem; line-height: 1.75; color: var(--text-sub);
+      background: var(--bg); border-radius: 5px; padding: 8px 12px; margin-bottom: 8px;
+    }
+    .kb-keywords { display: flex; flex-wrap: wrap; gap: 4px; }
+    .kb-kw { background: #ddf4ff; color: #0969da; border-radius: 4px; padding: 1px 8px; font-size: 0.67rem; }
+    .kb-concept-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      margin-bottom: 10px; overflow: hidden;
+    }
+    .kb-concept-heading {
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
+    }
+    .kb-concept-heading:hover { background: var(--bg-card-hover); }
+    .kb-concept-name { font-size: 0.85rem; font-weight: 600; }
+    .kb-concept-toggle { font-size: 0.72rem; color: var(--text-sub); }
+    .kb-concept-body { display: none; padding: 0 16px 14px; border-top: 1px solid var(--border); }
+    .kb-concept-body.open { display: block; }
+    .kb-concept-ctx { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .kb-concept-ctx-box { border-radius: 5px; padding: 8px 10px; font-size: 0.75rem; line-height: 1.65; }
+    .kb-concept-explain { font-size: 0.77rem; line-height: 1.75; color: var(--text-sub); margin-top: 2px; }
+    .kb-learnings-list { list-style: none; margin: 0; padding: 0; }
+    .kb-learnings-list li {
+      padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; margin-bottom: 8px; font-size: 0.82rem; line-height: 1.75;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .kb-learnings-list li::before {
+      content: ''; flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--blue); margin-top: 7px;
+    }
+    .kb-msg { text-align: center; color: var(--text-sub); padding: 48px; font-size: 0.82rem; }
+    .kb-fallback-badge {
+      display: inline-block; background: #fff8c5; color: #9a6700;
+      border: 1px solid #e3b341; border-radius: 4px; padding: 1px 8px;
+      font-size: 0.67rem; margin-left: 6px;
+    }
+    @media (max-width: 700px) {
+      .kb-summary-grid { grid-template-columns: 1fr; }
+      .kb-causal-row { grid-template-columns: 1fr; }
+      .kb-causal-arrow { display: none; }
+      .kb-concept-ctx { grid-template-columns: 1fr; }
+    }
+
     /* ── 반응형 ── */
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2,1fr); }
@@ -404,13 +492,23 @@
   </div>
 </div>
 
-<!-- 탭: 경제 공부 -->
+<!-- 탭: 경제 공부 (KB 리포트) -->
 <div id="tab-study" class="content" style="display:none">
-  <header><h1>📚 경제 공부</h1></header>
-  <div class="placeholder-wrap">
-    <div class="icon">📚</div>
-    <h2>경제 공부</h2>
-    <p>경제 용어, 개념 해설, 학습 자료가 이 탭에 추가될 예정입니다.</p>
+  <header>
+    <h1>📚 경제 공부</h1>
+    <span class="updated-at" id="kb-updated-at"></span>
+  </header>
+
+  <div id="kb-wrap">
+    <div style="padding:14px 0 16px">
+      <div class="kb-header">
+        <span class="kb-meta" id="kb-meta">로딩 중...</span>
+        <select class="kb-date-select" id="kb-date-sel" style="display:none"></select>
+      </div>
+    </div>
+    <div id="kb-body">
+      <div class="kb-msg">KB 리포트를 불러오는 중...</div>
+    </div>
   </div>
 </div>
 
@@ -705,6 +803,144 @@
   document.addEventListener('keydown', e => { if (e.key==='Escape') closeTrend(); });
 
   loadReportIndex();
+
+  // ── KB 리포트 경제 공부 ────────────────────────────────────
+  const KB_CACHE = {};
+
+  async function loadKbIndex() {
+    try {
+      const res = await fetch(`data/kb_reports/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const dates = idx.dates || [];
+      if (!dates.length) {
+        document.getElementById('kb-meta').textContent = '아직 생성된 KB 리포트가 없습니다.';
+        document.getElementById('kb-body').innerHTML = '';
+        return;
+      }
+      const sel = document.getElementById('kb-date-sel');
+      dates.forEach(d => { const o = document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+      sel.style.display = '';
+      sel.addEventListener('change', () => showKbReport(sel.value));
+      showKbReport(dates[0]);
+    } catch {
+      document.getElementById('kb-meta').textContent = 'KB 리포트 인덱스를 불러올 수 없습니다.';
+      document.getElementById('kb-body').innerHTML = '';
+    }
+  }
+
+  async function showKbReport(date) {
+    document.getElementById('kb-date-sel').value = date;
+    if (KB_CACHE[date]) { renderKbReport(KB_CACHE[date]); return; }
+    try {
+      const res = await fetch(`data/kb_reports/${date}.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      KB_CACHE[date] = await res.json();
+      renderKbReport(KB_CACHE[date]);
+    } catch {
+      document.getElementById('kb-body').innerHTML = `<div class="kb-msg">${date} KB 리포트를 불러올 수 없습니다.</div>`;
+    }
+  }
+
+  function renderKbReport(d) {
+    const fallback = d.is_fallback
+      ? `<span class="kb-fallback-badge">⚠️ ${d.actual_date||''} 기준</span>` : '';
+    document.getElementById('kb-meta').innerHTML =
+      `생성: ${d.generated_at||d.date}  ·  모닝: ${d.has_morning?'✓':'✗'}  ·  마감: ${d.has_close?'✓':'✗'}${fallback}`;
+    document.getElementById('kb-updated-at').textContent = d.generated_at || '';
+
+    const chains   = d.causal_chains || [];
+    const concepts = d.concept_connections || [];
+    const learnings = d.key_learnings || [];
+
+    let html = '';
+
+    // 요약 카드 (모닝 / 마감)
+    html += `<div class="kb-summary-grid">
+      <div class="kb-summary-card">
+        <div class="kb-summary-label kb-morning-label">☀️ 모닝 코멘트 요약</div>
+        <div class="kb-summary-text">${esc(d.morning_summary || '—') }</div>
+      </div>
+      <div class="kb-summary-card">
+        <div class="kb-summary-label kb-close-label">🌙 장마감 코멘트 요약</div>
+        <div class="kb-summary-text">${esc(d.close_summary || '—') }</div>
+      </div>
+    </div>`;
+
+    // 인과관계 섹션
+    if (chains.length) {
+      html += `<div class="kb-section-title">인과관계 분석</div>`;
+      chains.forEach(ch => {
+        const kws = (ch.concept_keywords || []).map(k => `<span class="kb-kw">${esc(k)}</span>`).join('');
+        html += `<div class="kb-causal-card">
+          <div class="kb-causal-title">${esc(ch.title||'')}</div>
+          <div class="kb-causal-row">
+            <div class="kb-causal-box kb-causal-morning">
+              <div class="kb-causal-box-label m">모닝 예측/언급</div>
+              ${esc(ch.morning_factor||'')}
+            </div>
+            <div class="kb-causal-arrow">→</div>
+            <div class="kb-causal-box kb-causal-close">
+              <div class="kb-causal-box-label c">마감 결과/전개</div>
+              ${esc(ch.close_outcome||'')}
+            </div>
+          </div>
+          <div class="kb-mechanism">${esc(ch.mechanism||'')}</div>
+          <div class="kb-keywords">${kws}</div>
+        </div>`;
+      });
+    }
+
+    // 개념 연결 섹션
+    if (concepts.length) {
+      html += `<div class="kb-section-title">개념 연결</div>`;
+      concepts.forEach((c, i) => {
+        html += `<div class="kb-concept-card">
+          <div class="kb-concept-heading" onclick="kbToggle(this)">
+            <span class="kb-concept-name">${esc(c.concept||'')}</span>
+            <span class="kb-concept-toggle">▾ 펼치기</span>
+          </div>
+          <div class="kb-concept-body" id="kbc-${i}">
+            <div class="kb-concept-ctx">
+              <div class="kb-concept-ctx-box kb-causal-morning">
+                <div class="kb-causal-box-label m">모닝 맥락</div>
+                ${esc(c.morning_context||'')}
+              </div>
+              <div class="kb-concept-ctx-box kb-causal-close">
+                <div class="kb-causal-box-label c">마감 맥락</div>
+                ${esc(c.close_context||'')}
+              </div>
+            </div>
+            <div class="kb-concept-explain">${esc(c.explanation||'')}</div>
+          </div>
+        </div>`;
+      });
+    }
+
+    // 핵심 학습 포인트
+    if (learnings.length) {
+      html += `<div class="kb-section-title">핵심 학습 포인트</div>
+        <ul class="kb-learnings-list">
+          ${learnings.map(l => `<li>${esc(l)}</li>`).join('')}
+        </ul>`;
+    }
+
+    if (!html) html = '<div class="kb-msg">분석 결과가 없습니다.</div>';
+    document.getElementById('kb-body').innerHTML = html;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function kbToggle(heading) {
+    const body = heading.nextElementSibling;
+    const opening = !body.classList.contains('open');
+    body.classList.toggle('open', opening);
+    heading.querySelector('.kb-concept-toggle').textContent = opening ? '▴ 접기' : '▾ 펼치기';
+  }
+
+  loadKbIndex();
 </script>
 </body>
 </html>

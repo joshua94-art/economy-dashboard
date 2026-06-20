@@ -25,7 +25,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 데이터 디렉토리 생성
-        run: mkdir -p data data/reports
+        run: mkdir -p data data/reports data/kb_reports
 
       - name: 시장 데이터 수집
         run: python scripts/fetch_data.py
@@ -42,6 +42,13 @@ jobs:
         run: python scripts/fetch_hankyung.py
         continue-on-error: true   # PDF 없는 날(주말·공휴일)에도 워크플로우 중단 방지
 
+      - name: KB 리포트 경제 공부 분석
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python scripts/fetch_kb_report.py
+        continue-on-error: true   # PDF 없는 날에도 워크플로우 중단 방지
+
       - name: Git 설정
         run: |
           git config user.name "github-actions[bot]"
@@ -49,6 +56,6 @@ jobs:
 
       - name: 변경사항 커밋 및 푸시
         run: |
-          git add data/market_data.json data/reports/
+          git add data/market_data.json data/reports/ data/kb_reports/
           git diff --staged --quiet || git commit -m "📊 데이터 업데이트: $(TZ='Asia/Seoul' date +'%Y-%m-%d %H:%M KST')"
           git push
