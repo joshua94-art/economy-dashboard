@@ -1,31 +1,35 @@
 {
-  "updated_at": "초기 데이터 — GitHub Actions 실행 후 업데이트됩니다",
-  "exchange_rate": { "usd_krw": null, "change": null, "change_pct": null },
+  "updated_at": "2026-06-20 19:43 KST",
+  "exchange_rate": {
+    "usd_krw": 1529.89,
+    "change": 4.47,
+    "change_pct": 0.293
+  },
   "indices": {
-    "sp500":  { "value": null, "change": null, "change_pct": null },
-    "nasdaq": { "value": null, "change": null, "change_pct": null },
-    "dow":    { "value": null, "change": null, "change_pct": null },
-    "kospi":  { "value": null, "change": null, "change_pct": null },
-    "kosdaq": { "value": null, "change": null, "change_pct": null }
+    "sp500":  { "value": 7500.5801,  "change": 80.48,    "change_pct": 1.0846  },
+    "nasdaq": { "value": 26517.9297, "change": 496.2695, "change_pct": 1.9071  },
+    "dow":    { "value": 51564.6992, "change": 72.1484,  "change_pct": 0.1401  },
+    "kospi":  { "value": 9052.4199,  "change": -11.4199, "change_pct": -0.126  },
+    "kosdaq": { "value": 966.59,     "change": -34.34,   "change_pct": -3.4308 }
   },
   "commodities": {
-    "gold":        { "price": null, "change": null, "change_pct": null },
-    "silver":      { "price": null, "change": null, "change_pct": null },
-    "crude_oil":   { "price": null, "change": null, "change_pct": null },
-    "natural_gas": { "price": null, "change": null, "change_pct": null }
+    "gold":        { "price": 4172.8999, "change": -51.2002, "change_pct": -1.2121 },
+    "silver":      { "price": 64.91,     "change": -1.345,   "change_pct": -2.03   },
+    "crude_oil":   { "price": 76.54,     "change": -0.06,    "change_pct": -0.0783 },
+    "natural_gas": { "price": 3.198,     "change": -0.035,   "change_pct": -1.0826 }
   },
-  "vix":        { "value": null, "change": null, "change_pct": null },
-  "fear_greed": { "value": null, "label": null },
+  "vix": { "value": 16.4, "change": -2.04, "change_pct": -11.0629 },
+  "fear_greed": { "value": 81, "label": "극도의 탐욕" },
   "section_comments": {
     "kr_indices": "",
     "us_indices": ""
   },
   "portfolio": [
-    { "ticker": "010140.KS", "name": "삼성중공업",   "price": 27250,  "change": null, "change_pct": null, "shares": 165, "avg_price": 30156,  "value": 4496250, "pl": -479490,  "pl_pct": -9.6371  },
-    { "ticker": "189300.KS", "name": "인텔리안테크", "price": 90900,  "change": null, "change_pct": null, "shares":  25, "avg_price": 168500, "value": 2272500, "pl": -1940000, "pl_pct": -46.0534 },
-    { "ticker": "329180.KS", "name": "한중엔시에스", "price": 40050,  "change": null, "change_pct": null, "shares":  68, "avg_price": 58800,  "value": 2723400, "pl": -1275000, "pl_pct": -31.8878 },
-    { "ticker": "036710.KS", "name": "선익시스템",   "price": 67600,  "change": null, "change_pct": null, "shares":  45, "avg_price": 91000,  "value": 3042000, "pl": -1053000, "pl_pct": -25.7143 },
-    { "ticker": "000720.KS", "name": "현대건설",     "price": 127300, "change": null, "change_pct": null, "shares":  25, "avg_price": 160800, "value": 3182500, "pl": -837500,  "pl_pct": -20.8333 }
+    { "ticker": "010140.KS", "name": "삼성중공업",   "price": 27550.0,  "change": -150.0,  "change_pct": -0.5415, "shares": 165, "avg_price": 30156,  "value": 4545750.0,  "pl": -429990.0,  "pl_pct": -8.6417  },
+    { "ticker": "189300.KS", "name": "인텔리안테크", "price": 91600.0,  "change": -4400.0, "change_pct": -4.5833, "shares":  25, "avg_price": 168500, "value": 2290000.0,  "pl": -1922500.0, "pl_pct": -45.638  },
+    { "ticker": "329180.KS", "name": "한중엔시에스", "price": 40050.0,  "change": null,    "change_pct": null,    "shares":  68, "avg_price": 58800,  "value": 2723400.0,  "pl": -1275000.0, "pl_pct": -31.8878 },
+    { "ticker": "036710.KS", "name": "선익시스템",   "price": 67600.0,  "change": null,    "change_pct": null,    "shares":  45, "avg_price": 91000,  "value": 3042000.0,  "pl": -1053000.0, "pl_pct": -25.7143 },
+    { "ticker": "000720.KS", "name": "현대건설",     "price": 128600.0, "change": -4600.0, "change_pct": -3.4535, "shares":  25, "avg_price": 160800, "value": 3215000.0,  "pl": -805000.0,  "pl_pct": -20.0249 }
   ],
-  "briefing": "GitHub Actions 워크플로우가 활성화되면 매일 오전 7시(KST)에 AI 브리핑이 자동으로 생성됩니다."
+  "briefing": "간밤 미국 증시는 나스닥이 +1.91%로 기술주 강세를 주도한 반면, 다우존스는 +0.14%에 그치며 업종 간 차별화가 뚜렷했습니다. AI·반도체 중심의 성장주 쏠림이 재차 확인된 흐름입니다.\n\n국내 시장은 온기를 받아내지 못했습니다. 코스피가 소폭 하락한 가운데 코스닥은 -3.43% 급락으로 중소형·성장주 전반에 투자심리가 냉각됐습니다. 원/달러 환율도 1,530원에 육박하며 외국인 자금 이탈 압력을 가중시키고 있습니다.\n\n공포탐욕 지수 81(극도의 탐욕) 구간에서 금(-1.21%)·은(-2.03%) 안전자산이 동반 약세를 보이는 점은 과열 경계 신호입니다. 미국 기술주 강세가 국내 대형 IT주로 연결될 수 있는지 오늘 장 초반 외국인 수급을 주목하세요."
 }
