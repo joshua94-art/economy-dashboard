@@ -18,8 +18,10 @@
 import io
 import json
 import os
+import re
 import tempfile
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 import anthropic
 import pdfplumber
@@ -71,21 +73,67 @@ def find_folder(service, name: str, parent_id: str | None = None) -> str | None:
     return None
 
 
-def list_pdfs(service, folder_id: str, date_str: str) -> list[dict]:
-    """date_str(YYYYMMDD)을 이름에 포함하는 PDF 목록 반환"""
-    q = (
-        f"name contains '{date_str}'"
-        f" and mimeType='application/pdf'"
-        f" and '{folder_id}' in parents"
-        f" and trashed=false"
-    )
+def _all_pdfs_in_folder(service, folder_id: str) -> list[dict]:
+    """폴더 내 PDF 전체 목록 (날짜 필터 없음, 최대 200개)"""
     res = service.files().list(
-        q=q,
+        q=f"mimeType='application/pdf' and '{folder_id}' in parents and trashed=false",
         fields="files(id,name)",
         orderBy="name",
+        pageSize=200,
         **_DRIVE_PARAMS,
     ).execute()
     return res.get("files", [])
+
+
+def find_best_pdfs(service, folder_id: str, today_str: str) -> tuple[list[dict], str]:
+    """
+    PDF 목록과 실제 사용 날짜(YYYYMMDD)를 반환.
+    1) today_str 날짜 파일이 있으면 그것을 사용.
+    2) 없으면 폴더 전체에서 YYYYMMDD 패턴을 추출해 가장 최근 날짜 그룹 사용.
+    """
+    # 1차: 오늘 날짜
+    today_pdfs = [
+        f for f in _all_pdfs_in_folder(service, folder_id)
+        if today_str in f["name"]
+    ]
+    if today_pdfs:
+        print(f"  오늘({today_str}) PDF {len(today_pdfs)}개 사용")
+        return sorted(today_pdfs, key=lambda x: x["name"]), today_str
+
+    print(f"  {today_str} PDF 없음 → 폴더 내 최근 날짜 검색 중...")
+
+    # 2차: 전체 PDF에서 날짜 패턴 추출 후 최신 그룹
+    all_pdfs = _all_pdfs_in_folder(service, folder_id)
+    if not all_pdfs:
+        print("  폴더에 PDF가 없습니다.")
+        return [], ""
+
+    by_date: dict[str, list] = defaultdict(list)
+    for f in all_pdfs:
+        m = re.search(r"(\d{8})", f["name"])
+        if m:
+            by_date[m.group(1)].append(f)
+
+    if not by_date:
+        print("  파일명에서 날짜 패턴(YYYYMMDD)을 찾을 수 없습니다.")
+        print("  파일 목록:", [f["name"] for f in all_pdfs[:5]])
+        return [], ""
+
+    latest = max(by_date.keys())
+    pdfs = sorted(by_date[latest], key=lambda x: x["name"])
+    print(f"  최근 날짜 사용: {latest} (PDF {len(pdfs)}개, 전체 {len(all_pdfs)}개 중)")
+    return pdfs, latest
+
+
+def find_month_folder(service, hk_id: str, now: datetime) -> tuple[str | None, str]:
+    """현재 월 폴더 탐색. 없으면 이전 달도 시도."""
+    for delta in [0, 1]:
+        target = (now.replace(day=1) - timedelta(days=1)) if delta else now
+        month_str = target.strftime("%Y-%m")
+        folder_id = find_folder(service, month_str, hk_id)
+        if folder_id:
+            return folder_id, month_str
+    return None, ""
 
 
 def download_file(service, file_id: str) -> bytes:
@@ -245,16 +293,13 @@ def update_index(date_display: str) -> None:
 def main() -> None:
     kst = pytz.timezone("Asia/Seoul")
     now = datetime.now(kst)
-    date_str = now.strftime("%Y%m%d")        # 20260620
-    date_display = now.strftime("%Y-%m-%d")  # 2026-06-20
-    month_folder = now.strftime("%Y-%m")     # 2026-06
+    today_str = now.strftime("%Y%m%d")   # 20260620 — 1차 검색 기준
 
-    print(f"[{date_display}] 한경 PDF 분석 시작")
+    print(f"[{now.strftime('%Y-%m-%d %H:%M KST')}] 한경 PDF 분석 시작")
 
     service = get_drive_service()
 
     # ── 폴더 탐색 ──
-    # 1단계: 최상위 "Joshua 증권" — parent 없이 전체 Drive 검색 (공유된 폴더)
     root_id = find_folder(service, "Joshua 증권")
     if not root_id:
         raise RuntimeError(
@@ -262,22 +307,27 @@ def main() -> None:
             "서비스 계정 이메일로 해당 폴더를 공유했는지 확인하세요."
         )
 
-    # 2단계: 하위 폴더들은 parent_id 지정하여 검색
     hk_id = find_folder(service, "한경 PDF", root_id)
     if not hk_id:
         raise RuntimeError("'한경 PDF' 폴더를 찾을 수 없습니다.")
 
-    month_id = find_folder(service, month_folder, hk_id)
+    # 현재 월 → 없으면 이전 달 자동 시도
+    month_id, month_str = find_month_folder(service, hk_id, now)
     if not month_id:
-        print(f"'{month_folder}' 폴더 없음. 종료.")
+        print("월 폴더를 찾을 수 없습니다. 종료.")
         return
 
-    # ── PDF 목록 ──
-    pdfs = list_pdfs(service, month_id, date_str)
+    # ── PDF 선택 (오늘 날짜 우선, 없으면 최신 날짜) ──
+    pdfs, actual_date_str = find_best_pdfs(service, month_id, today_str)
     if not pdfs:
-        print(f"  {date_str} 날짜 PDF 없음. 종료.")
+        print("사용할 PDF를 찾을 수 없습니다. 종료.")
         return
-    print(f"  {len(pdfs)}개 PDF 발견")
+
+    # 실제 PDF 날짜로 date_display 결정
+    date_display = f"{actual_date_str[:4]}-{actual_date_str[4:6]}-{actual_date_str[6:]}"
+    is_fallback = actual_date_str != today_str
+    if is_fallback:
+        print(f"  ※ 오늘({today_str}) 파일 없음 → {actual_date_str} 파일로 대체")
 
     # ── 텍스트 추출 ──
     texts = []
@@ -305,7 +355,9 @@ def main() -> None:
     report = {
         "date": date_display,
         "generated_at": now.strftime("%Y-%m-%d %H:%M KST"),
+        "pdf_date": actual_date_str,          # 실제 PDF 날짜
         "pdf_count": len(pdfs),
+        "is_fallback": is_fallback,           # 대체 날짜 사용 여부
         "categories": categories,
     }
     path = f"{REPORT_DIR}/{date_display}.json"

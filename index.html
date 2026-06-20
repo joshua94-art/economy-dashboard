@@ -631,7 +631,9 @@
   }
 
   function renderReport(data) {
-    document.getElementById('report-meta').textContent = `생성: ${data.generated_at||data.date}  ·  PDF ${data.pdf_count||'?'}페이지`;
+    const fallback = data.is_fallback ? `  ⚠️ 오늘 파일 없음 — ${data.pdf_date||''}(최근) 기준` : '';
+    document.getElementById('report-meta').textContent =
+      `생성: ${data.generated_at||data.date}  ·  PDF ${data.pdf_count||'?'}페이지${fallback}`;
     document.getElementById('report-updated-at').textContent = data.generated_at || '';
     const cats = Object.keys(data.categories || {});
     document.getElementById('report-cat-tabs').innerHTML =
