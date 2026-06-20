@@ -1,27 +1,129 @@
 {
-  "updated_at": "초기 데이터 — GitHub Actions 실행 후 업데이트됩니다",
-  "exchange_rate": { "usd_krw": null, "change": null, "change_pct": null },
+  "updated_at": "2026-06-20 19:43 KST",
+  "exchange_rate": {
+    "usd_krw": 1529.89,
+    "change": 4.47,
+    "change_pct": 0.293
+  },
   "indices": {
-    "sp500":  { "value": null, "change": null, "change_pct": null },
-    "nasdaq": { "value": null, "change": null, "change_pct": null },
-    "dow":    { "value": null, "change": null, "change_pct": null },
-    "kospi":  { "value": null, "change": null, "change_pct": null },
-    "kosdaq": { "value": null, "change": null, "change_pct": null }
+    "sp500": {
+      "value": 7500.5801,
+      "change": 80.48,
+      "change_pct": 1.0846
+    },
+    "nasdaq": {
+      "value": 26517.9297,
+      "change": 496.2695,
+      "change_pct": 1.9071
+    },
+    "dow": {
+      "value": 51564.6992,
+      "change": 72.1484,
+      "change_pct": 0.1401
+    },
+    "kospi": {
+      "value": 9052.4199,
+      "change": -11.4199,
+      "change_pct": -0.126
+    },
+    "kosdaq": {
+      "value": 966.59,
+      "change": -34.34,
+      "change_pct": -3.4308
+    }
   },
   "commodities": {
-    "gold":        { "price": null, "change": null, "change_pct": null },
-    "silver":      { "price": null, "change": null, "change_pct": null },
-    "crude_oil":   { "price": null, "change": null, "change_pct": null },
-    "natural_gas": { "price": null, "change": null, "change_pct": null }
+    "gold": {
+      "price": 4172.8999,
+      "change": -51.2002,
+      "change_pct": -1.2121
+    },
+    "silver": {
+      "price": 64.91,
+      "change": -1.345,
+      "change_pct": -2.03
+    },
+    "crude_oil": {
+      "price": 76.54,
+      "change": -0.06,
+      "change_pct": -0.0783
+    },
+    "natural_gas": {
+      "price": 3.198,
+      "change": -0.035,
+      "change_pct": -1.0826
+    }
   },
-  "vix":        { "value": null, "change": null, "change_pct": null },
-  "fear_greed": { "value": null, "label": null },
+  "vix": {
+    "value": 16.4,
+    "change": -2.04,
+    "change_pct": -11.0629
+  },
+  "fear_greed": {
+    "value": 81,
+    "label": "극도의 탐욕"
+  },
   "portfolio": [
-    { "ticker": "010140.KS", "name": "삼성중공업",   "price": null, "change": null, "change_pct": null, "shares": 165, "avg_price": 30156,  "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "189300.KS", "name": "인텔리안테크", "price": null, "change": null, "change_pct": null, "shares":  25, "avg_price": 168500, "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "329180.KS", "name": "한중엔시에스", "price": null, "change": null, "change_pct": null, "shares":  68, "avg_price": 58800,  "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "036710.KS", "name": "선익시스템",   "price": null, "change": null, "change_pct": null, "shares":  45, "avg_price": 91000,  "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "000720.KS", "name": "현대건설",     "price": null, "change": null, "change_pct": null, "shares":  25, "avg_price": 160800, "value": 0, "pl": 0, "pl_pct": 0 }
+    {
+      "ticker": "010140.KS",
+      "name": "삼성중공업",
+      "price": 27550.0,
+      "change": -150.0,
+      "change_pct": -0.5415,
+      "shares": 165,
+      "avg_price": 30156,
+      "value": 4545750.0,
+      "pl": -429990.0,
+      "pl_pct": -8.6417
+    },
+    {
+      "ticker": "189300.KS",
+      "name": "인텔리안테크",
+      "price": 91600.0,
+      "change": -4400.0,
+      "change_pct": -4.5833,
+      "shares": 25,
+      "avg_price": 168500,
+      "value": 2290000.0,
+      "pl": -1922500.0,
+      "pl_pct": -45.638
+    },
+    {
+      "ticker": "329180.KS",
+      "name": "한중엔시에스",
+      "price": 667000.0,
+      "change": -17000.0,
+      "change_pct": -2.4854,
+      "shares": 68,
+      "avg_price": 58800,
+      "value": 45356000.0,
+      "pl": 41357600.0,
+      "pl_pct": 1034.3537
+    },
+    {
+      "ticker": "036710.KS",
+      "name": "선익시스템",
+      "price": 4790.0,
+      "change": -65.0,
+      "change_pct": -1.3388,
+      "shares": 45,
+      "avg_price": 91000,
+      "value": 215550.0,
+      "pl": -3879450.0,
+      "pl_pct": -94.7363
+    },
+    {
+      "ticker": "000720.KS",
+      "name": "현대건설",
+      "price": 128600.0,
+      "change": -4600.0,
+      "change_pct": -3.4535,
+      "shares": 25,
+      "avg_price": 160800,
+      "value": 3215000.0,
+      "pl": -805000.0,
+      "pl_pct": -20.0249
+    }
   ],
-  "briefing": "GitHub Actions 워크플로우가 활성화되면 매일 오전 7시(KST)에 AI 브리핑이 자동으로 생성됩니다."
+  "briefing": "# 📊 아침 경제 브리핑 | 2026년 6월 20일\n\n---\n\n## 오늘의 핵심 흐름\n\n간밤 미국 증시는 뚜렷한 온도 차를 보였습니다. 나스닥이 +1.91%로 기술주 강세를 주도한 반면, 다우존스는 +0.14%에 그치며 업종 간 차별화가 뚜렷했습니다. AI·반도체 중심의 성장주 쏠림이 재차 확인된 흐름입니다.\n\n그러나 국내 시장은 온기를 받아내지 못했습니다. 코스피가 소폭 하락한 가운데 **코스닥은 -3.43%의 급락**으로 중소형·성장주 전반에 투자심리가 급속히 냉각됐습니다. 원/달러 환율도 1,530원에 육박하며 외국인 자금 이탈 압력을 가중시키는 요인으로 작용 중입니다.\n\n---\n\n## ⚠️ 오늘의 리스크\n\n금(-1.21%)·은(-2.03%) 등 안전자산이 동반 약세를 보이는 것은 표면적으로는 위험선호 신호지만, **공포탐욕 지수 81(극도의 탐욕)** 은 오히려 경계 신호입니다. 과열 국면에서의 돌발 조정 가능성을 배제할 수 없습니다.\n\n포트폴리오에서는 **인텔리안테크(-45.6%)·선익시스템(-94.7%)** 의 손실 깊이가 우려됩니다. 코스닥 급락 여파가 이어질 경우 추가 하방 압력이 불가피합니다.\n\n---\n\n## 💡 오늘의 기회\n\n**한중엔시에스(+1034%)**는 포트폴리오의 든든한 버팀목입니다. 다만 고수익 구간에서의 분할 익절 전략을 점검할 시점입니다. 미국 기술주 강세 흐름이 국내 대형 IT주로 연결될 수 있는지 오늘 장 초반 외국인 수급"
 }
