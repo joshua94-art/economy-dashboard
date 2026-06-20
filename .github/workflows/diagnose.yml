@@ -1,0 +1,24 @@
+name: 드라이브 연결 진단
+
+on:
+  workflow_dispatch:   # 수동으로만 실행
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install google-api-python-client google-auth pytz
+
+      - name: 드라이브 진단 실행
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python scripts/diagnose_drive.py
