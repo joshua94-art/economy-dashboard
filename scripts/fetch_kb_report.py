@@ -121,78 +121,90 @@ def extract_text(pdf_bytes: bytes, filename: str) -> str:
 
 # ── Claude 분석 ───────────────────────────────────────────────────────────────
 
-def analyze(morning_text: str, close_text: str, date_display: str) -> dict:
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+# 입력 텍스트를 각 5000자로 제한해 응답 길이를 예측 가능하게 유지
+_INPUT_LIMIT = 5000
 
-    template = {
-        "morning_summary": "모닝 코멘트 핵심 3-4문장 요약",
-        "close_summary": "장마감 코멘트 핵심 3-4문장 요약",
-        "causal_chains": [
-            {
-                "title": "인과관계 제목 (간결하게)",
-                "morning_factor": "모닝에서 언급한 요인/예측/전망",
-                "close_outcome": "마감에서 확인된 실제 결과/전개",
-                "mechanism": "인과 메커니즘 설명 (왜/어떻게 연결되는지 2-3문장)",
-                "concept_keywords": ["관련 경제 개념1", "개념2"]
-            }
-        ],
-        "concept_connections": [
-            {
-                "concept": "경제 개념/용어",
-                "morning_context": "모닝에서 이 개념이 등장한 맥락",
-                "close_context": "마감에서 이 개념이 등장한 맥락",
-                "explanation": "두 맥락 간 연결 설명 및 개념 이해 포인트 (2-3문장)"
-            }
-        ],
-        "key_learnings": [
-            "오늘 리포트에서 배울 수 있는 핵심 경제 학습 포인트 1",
-            "핵심 학습 포인트 2",
-            "핵심 학습 포인트 3"
-        ]
-    }
+SYSTEM_TEXT = (
+    "당신은 경제·금융 교육 전문가입니다. "
+    "KB증권 모닝 코멘트와 장마감 코멘트를 읽고, "
+    "두 리포트 사이의 인과관계와 경제 개념 연결을 분석합니다. "
+    "반드시 순수 JSON만 출력하세요. 마크다운, 설명, 코드블록 없이 {{ 로 시작하고 }} 로 끝내세요."
+)
 
-    morning_section = f"[모닝 코멘트]\n{morning_text[:15000]}" if morning_text else "[모닝 코멘트]\n(파일 없음)"
-    close_section   = f"[장마감 코멘트]\n{close_text[:15000]}"  if close_text  else "[장마감 코멘트]\n(파일 없음)"
 
-    resp = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        system=[
-            {
-                "type": "text",
-                "text": (
-                    "당신은 경제·금융 교육 전문가입니다. "
-                    "KB증권 모닝 코멘트와 장마감 코멘트를 읽고, "
-                    "두 리포트 사이의 인과관계와 경제 개념 연결을 분석하여 "
-                    "투자자의 경제 공부를 돕는 학습 리포트를 작성합니다. "
-                    "인과관계는 '아침 예측→실제 결과' 흐름으로, "
-                    "개념 연결은 두 리포트에 공통으로 등장하는 경제 용어/개념을 중심으로 분석하세요."
-                ),
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"다음은 KB증권 {date_display} 리포트입니다.\n\n"
-                    "두 리포트 간 인과관계(아침 예측 vs 실제 결과)와 경제 개념 연결을 분석하여 "
-                    "아래 JSON 형식으로만 응답하세요 (마크다운 코드블록 없이 JSON만).\n"
-                    "causal_chains 3-5개, concept_connections 3-5개, key_learnings 3-5개 작성하세요.\n\n"
-                    f"형식:\n{json.dumps(template, ensure_ascii=False, indent=2)}\n\n"
-                    f"{morning_section}\n\n"
-                    f"{close_section}"
-                ),
-            }
-        ],
+def _build_prompt(morning_text: str, close_text: str, date_display: str, n: int = 3) -> str:
+    """분석 프롬프트 생성. n = 각 섹션 항목 수"""
+    morning_section = f"[모닝 코멘트]\n{morning_text[:_INPUT_LIMIT]}" if morning_text else "[모닝 코멘트]\n(파일 없음)"
+    close_section   = f"[장마감 코멘트]\n{close_text[:_INPUT_LIMIT]}"  if close_text  else "[장마감 코멘트]\n(파일 없음)"
+
+    return (
+        f"KB증권 {date_display} 리포트를 분석하여 아래 JSON 구조로만 응답하세요.\n"
+        f"causal_chains {n}개, concept_connections {n}개, key_learnings {n}개.\n"
+        "각 문자열 필드는 100자 이내로 간결하게 작성하세요.\n\n"
+        '{"morning_summary":"(모닝 요약 100자 이내)",'
+        '"close_summary":"(마감 요약 100자 이내)",'
+        '"causal_chains":[{"title":"(제목)","morning_factor":"(모닝 요인)","close_outcome":"(마감 결과)","mechanism":"(메커니즘 설명)","concept_keywords":["개념1","개념2"]}],'
+        '"concept_connections":[{"concept":"(용어)","morning_context":"(모닝 맥락)","close_context":"(마감 맥락)","explanation":"(연결 설명)"}],'
+        '"key_learnings":["(학습 포인트1)","(학습 포인트2)","(학습 포인트3)"]}\n\n'
+        f"{morning_section}\n\n"
+        f"{close_section}"
     )
 
-    raw = resp.content[0].text.strip()
-    if "```" in raw:
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    return json.loads(raw.strip())
+
+def _parse_json(raw: str) -> dict:
+    """마크다운 코드블록 제거 후 JSON 파싱. 실패 시 { } 범위로 재시도."""
+    text = raw.strip()
+
+    # 코드블록 제거
+    if "```" in text:
+        after = text.split("```", 1)[1]
+        if after.startswith("json"):
+            after = after[4:]
+        text = after.split("```")[0].strip()
+
+    # 직접 파싱 시도
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # 첫 { 부터 마지막 } 까지 추출해 재시도 (앞뒤 불필요한 텍스트 제거)
+    start = text.find("{")
+    end   = text.rfind("}") + 1
+    if start >= 0 and end > start:
+        try:
+            return json.loads(text[start:end])
+        except json.JSONDecodeError:
+            pass
+
+    raise json.JSONDecodeError("JSON 파싱 실패", text, 0)
+
+
+def analyze(morning_text: str, close_text: str, date_display: str) -> dict:
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    system = [{"type": "text", "text": SYSTEM_TEXT, "cache_control": {"type": "ephemeral"}}]
+
+    for attempt, n_items in enumerate([3, 2], start=1):
+        prompt = _build_prompt(morning_text, close_text, date_display, n=n_items)
+        print(f"  API 호출 (시도 {attempt}, 항목 수={n_items})...")
+
+        resp = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=8192,
+            system=system,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        raw = resp.content[0].text
+        print(f"  응답 {len(raw)}자 수신 (stop_reason={resp.stop_reason})")
+
+        try:
+            return _parse_json(raw)
+        except json.JSONDecodeError as e:
+            print(f"  [WARN] JSON 파싱 실패 (시도 {attempt}): {e}")
+            print(f"  응답 끝 300자: {raw[-300:]!r}")
+            if attempt == 2:
+                raise RuntimeError(f"JSON 파싱 2회 실패. 마지막 응답:\n{raw[:500]}") from e
 
 
 # ── 인덱스 관리 ───────────────────────────────────────────────────────────────
