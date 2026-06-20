@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>경제 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-sub: #8b949e;
+      --green: #3fb950;
+      --red: #f85149;
+      --blue: #58a6ff;
+      --yellow: #e3b341;
+      --purple: #bc8cff;
+      --orange: #f0883e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; color: var(--blue); }
+    .updated-at { font-size: 0.78rem; color: var(--text-sub); }
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      transition: background 0.15s;
+    }
+    .card:hover { background: var(--bg-card-hover); }
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+    .neutral { color: var(--text-sub); }
+
+    /* Exchange Rate */
+    .exchange-card {
+      background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+      border: 1px solid #2d4a7a;
+      border-radius: 12px;
+      padding: 22px 28px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .exchange-label { font-size: 0.82rem; color: var(--text-sub); margin-bottom: 6px; }
+    .exchange-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.4rem;
+      font-weight: 600;
+    }
+    .exchange-change {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+    .exchange-right { text-align: right; }
+    .exchange-right .label { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 4px; }
+    .exchange-right .pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    /* Grids */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
+    .metric-card .label { font-size: 0.78rem; color: var(--text-sub); margin-bottom: 6px; }
+    .metric-card .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .metric-card .change { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+
+    /* Fear & Greed */
+    .fear-greed-card { display: flex; flex-direction: column; align-items: center; }
+    .fg-bar-wrap { width: 100%; margin: 14px 0 8px; }
+    .fg-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      color: var(--text-sub);
+      margin-bottom: 5px;
+    }
+    .fg-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(to right, #f85149 0%, #f0883e 25%, #e3b341 50%, #3fb950 75%, #58a6ff 100%);
+      position: relative;
+    }
+    .fg-marker {
+      position: absolute;
+      top: -5px;
+      width: 4px;
+      height: 20px;
+      background: white;
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 6px rgba(255,255,255,0.6);
+      transition: left 0.5s ease;
+    }
+    .fg-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+    .fg-label { font-size: 0.82rem; color: var(--text-sub); margin-top: 4px; }
+
+    .vix-guide { margin-top: 14px; }
+    .vix-guide div { font-size: 0.72rem; color: var(--text-sub); line-height: 1.7; }
+
+    /* Portfolio */
+    .portfolio-wrap { margin-bottom: 20px; overflow: hidden; border-radius: 8px; border: 1px solid var(--border); }
+    .portfolio-table { width: 100%; border-collapse: collapse; }
+    .portfolio-table th {
+      text-align: right;
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      font-weight: 500;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .portfolio-table th:first-child { text-align: left; }
+    .portfolio-table td {
+      text-align: right;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .portfolio-table td:first-child { text-align: left; font-family: 'Noto Sans KR', sans-serif; }
+    .portfolio-table tr:last-child td { border-bottom: none; }
+    .portfolio-table tr:hover td { background: var(--bg-card-hover); }
+    .stock-name { font-weight: 500; font-size: 0.85rem; }
+    .stock-ticker { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-sub); margin-top: 2px; }
+    .na { color: var(--text-sub); font-family: 'Noto Sans KR', sans-serif; }
+
+    /* Briefing */
+    .briefing-card { line-height: 1.8; }
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.68rem;
+      color: var(--purple);
+      background: rgba(188, 140, 255, 0.1);
+      border: 1px solid rgba(188, 140, 255, 0.3);
+      border-radius: 20px;
+      padding: 2px 10px;
+      margin-bottom: 14px;
+    }
+    .briefing-text { font-size: 0.88rem; line-height: 1.85; white-space: pre-wrap; word-break: keep-all; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+      .exchange-value { font-size: 1.6rem; }
+      .exchange-card { flex-direction: column; gap: 12px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📊 경제 대시보드</h1>
+  <span class="updated-at" id="updated-at">로딩 중...</span>
+</header>
+
+<main>
+
+  <!-- 환율 -->
+  <div class="exchange-card">
+    <div>
+      <div class="exchange-label">🇺🇸 원/달러 환율 (USD/KRW)</div>
+      <div class="exchange-value" id="ex-rate">—</div>
+      <div class="exchange-change neutral" id="ex-change">—</div>
+    </div>
+    <div class="exchange-right">
+      <div class="label">전일 대비 등락률</div>
+      <div class="pct neutral" id="ex-pct">—</div>
+    </div>
+  </div>
+
+  <!-- 한국 지수 -->
+  <div class="section-title">🇰🇷 한국 지수</div>
+  <div class="grid-2">
+    <div class="card metric-card">
+      <div class="label">KOSPI</div>
+      <div class="value" id="kospi-val">—</div>
+      <div class="change neutral" id="kospi-chg">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">KOSDAQ</div>
+      <div class="value" id="kosdaq-val">—</div>
+      <div class="change neutral" id="kosdaq-chg">—</div>
+    </div>
+  </div>
+
+  <!-- 미국 지수 -->
+  <div class="section-title">🇺🇸 미국 지수</div>
+  <div class="grid-3">
+    <div class="card metric-card">
+      <div class="label">S&amp;P 500</div>
+      <div class="value" id="sp500-val">—</div>
+      <div class="change neutral" id="sp500-chg">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">NASDAQ</div>
+      <div class="value" id="nasdaq-val">—</div>
+      <div class="change neutral" id="nasdaq-chg">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">다우존스</div>
+      <div class="value" id="dow-val">—</div>
+      <div class="change neutral" id="dow-chg">—</div>
+    </div>
+  </div>
+
+  <!-- 원자재 / 귀금속 -->
+  <div class="section-title">🛢️ 원자재 / 귀금속 (USD)</div>
+  <div class="grid-4">
+    <div class="card metric-card">
+      <div class="label">금 (Gold)</div>
+      <div class="value" id="gold-val">—</div>
+      <div class="change neutral" id="gold-chg">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">은 (Silver)</div>
+      <div class="value" id="silver-val">—</div>
+      <div class="change neutral" id="silver-chg">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">WTI 원유</div>
+      <div class="value" id="oil-val">—</div>
+      <div class="change neutral" id="oil-chg">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">천연가스</div>
+      <div class="value" id="gas-val">—</div>
+      <div class="change neutral" id="gas-chg">—</div>
+    </div>
+  </div>
+
+  <!-- 공포탐욕 / VIX -->
+  <div class="section-title">📈 시장 심리</div>
+  <div class="grid-2">
+    <div class="card fear-greed-card">
+      <div class="label" style="align-self:flex-start">공포탐욕 지수 (VIX 기반)</div>
+      <div class="fg-bar-wrap">
+        <div class="fg-bar-labels">
+          <span>극도의 공포</span>
+          <span>공포</span>
+          <span>중립</span>
+          <span>탐욕</span>
+          <span>극도의 탐욕</span>
+        </div>
+        <div class="fg-bar">
+          <div class="fg-marker" id="fg-marker" style="left:50%"></div>
+        </div>
+      </div>
+      <div class="fg-value neutral" id="fg-value">—</div>
+      <div class="fg-label" id="fg-label">—</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">VIX (변동성 지수)</div>
+      <div class="value" id="vix-val">—</div>
+      <div class="change neutral" id="vix-chg">—</div>
+      <div class="vix-guide">
+        <div>VIX &lt; 15 : 저변동 — 탐욕 구간</div>
+        <div>VIX 15–20 : 정상 범위</div>
+        <div>VIX 20–30 : 변동성 확대 — 공포 구간</div>
+        <div>VIX &gt; 30 : 고변동 — 극도의 공포</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 포트폴리오 -->
+  <div class="section-title">💼 내 포트폴리오</div>
+  <div class="portfolio-wrap">
+    <table class="portfolio-table">
+      <thead>
+        <tr>
+          <th style="text-align:left">종목</th>
+          <th>현재가</th>
+          <th>전일비</th>
+          <th>등락률</th>
+          <th>보유수량</th>
+          <th>평단가</th>
+          <th>평가금액</th>
+          <th>평가손익</th>
+          <th>수익률</th>
+        </tr>
+      </thead>
+      <tbody id="portfolio-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-sub)">로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- AI 브리핑 -->
+  <div class="section-title">🤖 AI 브리핑</div>
+  <div class="card briefing-card">
+    <div class="ai-badge">✨ Claude AI</div>
+    <div class="briefing-text neutral" id="briefing-text">로딩 중...</div>
+  </div>
+
+</main>
+
+<script>
+  function fmt(val, dec = 2) {
+    if (val === null || val === undefined) return '—';
+    const n = Number(val);
+    if (isNaN(n)) return '—';
+    return n.toLocaleString('ko-KR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  function applyChange(el, change, pct) {
+    if (change === null || pct === null) {
+      el.className = el.className.replace(/\b(up|down|neutral)\b/g, '') + ' neutral';
+      el.textContent = '—';
+      return;
+    }
+    const cls = pct > 0 ? 'up' : pct < 0 ? 'down' : 'neutral';
+    const sign = pct > 0 ? '+' : '';
+    el.className = el.className.replace(/\b(up|down|neutral)\b/g, '') + ' ' + cls;
+    el.textContent = `${sign}${fmt(change)} (${sign}${fmt(pct)}%)`;
+  }
+
+  function setMetric(valId, chgId, value, change, pct, prefix = '') {
+    const vEl = document.getElementById(valId);
+    const cEl = document.getElementById(chgId);
+    if (vEl) vEl.textContent = value !== null ? prefix + fmt(value) : '—';
+    if (cEl) applyChange(cEl, change, pct);
+  }
+
+  function getFGColor(v) {
+    if (v <= 24) return 'var(--red)';
+    if (v <= 44) return 'var(--orange)';
+    if (v <= 55) return 'var(--yellow)';
+    if (v <= 75) return 'var(--green)';
+    return 'var(--blue)';
+  }
+
+  function getFGLabel(v) {
+    if (v <= 24) return '극도의 공포 (Extreme Fear)';
+    if (v <= 44) return '공포 (Fear)';
+    if (v <= 55) return '중립 (Neutral)';
+    if (v <= 75) return '탐욕 (Greed)';
+    return '극도의 탐욕 (Extreme Greed)';
+  }
+
+  function naCell(content) {
+    return `<span class="na">${content}</span>`;
+  }
+
+  function render(d) {
+    document.getElementById('updated-at').textContent = '업데이트: ' + (d.updated_at || '—');
+
+    // 환율
+    const ex = d.exchange_rate || {};
+    const exEl = document.getElementById('ex-rate');
+    exEl.textContent = ex.usd_krw !== null ? fmt(ex.usd_krw, 2) + '원' : '—';
+    applyChange(document.getElementById('ex-change'), ex.change, ex.change_pct);
+    const pctEl = document.getElementById('ex-pct');
+    if (ex.change_pct !== null) {
+      const cls = ex.change_pct > 0 ? 'up' : ex.change_pct < 0 ? 'down' : 'neutral';
+      const sign = ex.change_pct > 0 ? '+' : '';
+      pctEl.className = 'pct ' + cls;
+      pctEl.textContent = sign + fmt(ex.change_pct) + '%';
+    }
+
+    // 지수
+    const idx = d.indices || {};
+    setMetric('kospi-val',  'kospi-chg',  idx.kospi?.value,  idx.kospi?.change,  idx.kospi?.change_pct);
+    setMetric('kosdaq-val', 'kosdaq-chg', idx.kosdaq?.value, idx.kosdaq?.change, idx.kosdaq?.change_pct);
+    setMetric('sp500-val',  'sp500-chg',  idx.sp500?.value,  idx.sp500?.change,  idx.sp500?.change_pct);
+    setMetric('nasdaq-val', 'nasdaq-chg', idx.nasdaq?.value, idx.nasdaq?.change, idx.nasdaq?.change_pct);
+    setMetric('dow-val',    'dow-chg',    idx.dow?.value,    idx.dow?.change,    idx.dow?.change_pct);
+
+    // 원자재
+    const com = d.commodities || {};
+    const g = com.gold || {};
+    document.getElementById('gold-val').textContent = g.price !== null && g.price !== undefined ? '$' + fmt(g.price) : '—';
+    applyChange(document.getElementById('gold-chg'), g.change, g.change_pct);
+    const si = com.silver || {};
+    document.getElementById('silver-val').textContent = si.price !== null && si.price !== undefined ? '$' + fmt(si.price) : '—';
+    applyChange(document.getElementById('silver-chg'), si.change, si.change_pct);
+    const cl = com.crude_oil || {};
+    document.getElementById('oil-val').textContent = cl.price !== null && cl.price !== undefined ? '$' + fmt(cl.price) : '—';
+    applyChange(document.getElementById('oil-chg'), cl.change, cl.change_pct);
+    const ng = com.natural_gas || {};
+    document.getElementById('gas-val').textContent = ng.price !== null && ng.price !== undefined ? '$' + fmt(ng.price, 3) : '—';
+    applyChange(document.getElementById('gas-chg'), ng.change, ng.change_pct);
+
+    // VIX
+    const vix = d.vix || {};
+    document.getElementById('vix-val').textContent = vix.value !== null && vix.value !== undefined ? fmt(vix.value, 2) : '—';
+    applyChange(document.getElementById('vix-chg'), vix.change, vix.change_pct);
+
+    // 공포탐욕
+    const fg = d.fear_greed || {};
+    const fgV = fg.value;
+    if (fgV !== null && fgV !== undefined) {
+      const fgEl = document.getElementById('fg-value');
+      fgEl.textContent = fgV;
+      fgEl.style.color = getFGColor(fgV);
+      document.getElementById('fg-label').textContent = getFGLabel(fgV);
+      document.getElementById('fg-marker').style.left = fgV + '%';
+    }
+
+    // 포트폴리오
+    const portfolio = d.portfolio || [];
+    const tbody = document.getElementById('portfolio-tbody');
+    if (!portfolio.length) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-sub)">포트폴리오 데이터 없음</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = portfolio.map(s => {
+      const hasPrice = s.price !== null && s.price !== undefined;
+      const hasHolding = s.shares > 0 && s.avg_price > 0;
+      const chgCls = (s.change_pct || 0) > 0 ? 'up' : (s.change_pct || 0) < 0 ? 'down' : 'neutral';
+      const plCls  = (s.pl || 0)  > 0 ? 'up' : (s.pl || 0)  < 0 ? 'down' : 'neutral';
+      const sign   = v => (Number(v) > 0 ? '+' : '');
+      return `<tr>
+        <td><div class="stock-name">${s.name}</div><div class="stock-ticker">${s.ticker}</div></td>
+        <td>${hasPrice ? fmt(s.price, 0) + '원' : naCell('—')}</td>
+        <td class="${hasPrice ? chgCls : ''}">${hasPrice ? sign(s.change) + fmt(s.change, 0) : naCell('—')}</td>
+        <td class="${hasPrice ? chgCls : ''}">${hasPrice ? sign(s.change_pct) + fmt(s.change_pct, 2) + '%' : naCell('—')}</td>
+        <td>${s.shares > 0 ? fmt(s.shares, 0) + '주' : naCell('미설정')}</td>
+        <td>${hasHolding ? fmt(s.avg_price, 0) + '원' : naCell('—')}</td>
+        <td>${hasHolding ? fmt(s.value, 0) + '원' : naCell('—')}</td>
+        <td class="${hasHolding ? plCls : ''}">${hasHolding ? sign(s.pl) + fmt(s.pl, 0) + '원' : naCell('—')}</td>
+        <td class="${hasHolding ? plCls : ''}">${hasHolding ? sign(s.pl_pct) + fmt(s.pl_pct, 2) + '%' : naCell('—')}</td>
+      </tr>`;
+    }).join('');
+
+    // 브리핑
+    const btEl = document.getElementById('briefing-text');
+    btEl.textContent = d.briefing || 'AI 브리핑이 아직 생성되지 않았습니다.';
+    btEl.className = 'briefing-text' + (d.briefing ? '' : ' neutral');
+  }
+
+  async function loadData() {
+    try {
+      const res = await fetch(`data/market_data.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error('not found');
+      const d = await res.json();
+      render(d);
+    } catch {
+      document.getElementById('updated-at').textContent = '데이터 없음 — GitHub Actions 실행 후 표시됩니다';
+      document.getElementById('briefing-text').textContent =
+        'GitHub Actions 워크플로우가 활성화되면 매일 오전 7시(KST)에 자동으로 업데이트됩니다.';
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>

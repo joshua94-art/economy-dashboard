@@ -1,0 +1,47 @@
+name: 시장 데이터 자동 업데이트
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # 매일 오전 7시 KST (UTC 22:00)
+  workflow_dispatch:        # 수동 실행 허용
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 데이터 디렉토리 생성
+        run: mkdir -p data
+
+      - name: 시장 데이터 수집
+        run: python scripts/fetch_data.py
+
+      - name: AI 브리핑 생성
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/generate_comments.py
+
+      - name: Git 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 변경사항 커밋 및 푸시
+        run: |
+          git add data/market_data.json
+          git diff --staged --quiet || git commit -m "📊 시장 데이터 업데이트: $(TZ='Asia/Seoul' date +'%Y-%m-%d %H:%M KST')"
+          git push

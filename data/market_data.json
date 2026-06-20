@@ -1,0 +1,27 @@
+{
+  "updated_at": "초기 데이터 — GitHub Actions 실행 후 업데이트됩니다",
+  "exchange_rate": { "usd_krw": null, "change": null, "change_pct": null },
+  "indices": {
+    "sp500":  { "value": null, "change": null, "change_pct": null },
+    "nasdaq": { "value": null, "change": null, "change_pct": null },
+    "dow":    { "value": null, "change": null, "change_pct": null },
+    "kospi":  { "value": null, "change": null, "change_pct": null },
+    "kosdaq": { "value": null, "change": null, "change_pct": null }
+  },
+  "commodities": {
+    "gold":        { "price": null, "change": null, "change_pct": null },
+    "silver":      { "price": null, "change": null, "change_pct": null },
+    "crude_oil":   { "price": null, "change": null, "change_pct": null },
+    "natural_gas": { "price": null, "change": null, "change_pct": null }
+  },
+  "vix":        { "value": null, "change": null, "change_pct": null },
+  "fear_greed": { "value": null, "label": null },
+  "portfolio": [
+    { "ticker": "010140.KS", "name": "삼성중공업",   "price": null, "change": null, "change_pct": null, "shares": 165, "avg_price": 30156,  "value": 0, "pl": 0, "pl_pct": 0 },
+    { "ticker": "189300.KS", "name": "인텔리안테크", "price": null, "change": null, "change_pct": null, "shares":  25, "avg_price": 168500, "value": 0, "pl": 0, "pl_pct": 0 },
+    { "ticker": "329180.KS", "name": "한중엔시에스", "price": null, "change": null, "change_pct": null, "shares":  68, "avg_price": 58800,  "value": 0, "pl": 0, "pl_pct": 0 },
+    { "ticker": "036710.KS", "name": "선익시스템",   "price": null, "change": null, "change_pct": null, "shares":  45, "avg_price": 91000,  "value": 0, "pl": 0, "pl_pct": 0 },
+    { "ticker": "000720.KS", "name": "현대건설",     "price": null, "change": null, "change_pct": null, "shares":  25, "avg_price": 160800, "value": 0, "pl": 0, "pl_pct": 0 }
+  ],
+  "briefing": "GitHub Actions 워크플로우가 활성화되면 매일 오전 7시(KST)에 AI 브리핑이 자동으로 생성됩니다."
+}
