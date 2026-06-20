@@ -16,12 +16,16 @@
   },
   "vix":        { "value": null, "change": null, "change_pct": null },
   "fear_greed": { "value": null, "label": null },
+  "section_comments": {
+    "kr_indices": "",
+    "us_indices": ""
+  },
   "portfolio": [
-    { "ticker": "010140.KS", "name": "삼성중공업",   "price": null, "change": null, "change_pct": null, "shares": 165, "avg_price": 30156,  "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "189300.KS", "name": "인텔리안테크", "price": null, "change": null, "change_pct": null, "shares":  25, "avg_price": 168500, "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "329180.KS", "name": "한중엔시에스", "price": null, "change": null, "change_pct": null, "shares":  68, "avg_price": 58800,  "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "036710.KS", "name": "선익시스템",   "price": null, "change": null, "change_pct": null, "shares":  45, "avg_price": 91000,  "value": 0, "pl": 0, "pl_pct": 0 },
-    { "ticker": "000720.KS", "name": "현대건설",     "price": null, "change": null, "change_pct": null, "shares":  25, "avg_price": 160800, "value": 0, "pl": 0, "pl_pct": 0 }
+    { "ticker": "010140.KS", "name": "삼성중공업",   "price": 27250,  "change": null, "change_pct": null, "shares": 165, "avg_price": 30156,  "value": 4496250, "pl": -479490,  "pl_pct": -9.6371  },
+    { "ticker": "189300.KS", "name": "인텔리안테크", "price": 90900,  "change": null, "change_pct": null, "shares":  25, "avg_price": 168500, "value": 2272500, "pl": -1940000, "pl_pct": -46.0534 },
+    { "ticker": "329180.KS", "name": "한중엔시에스", "price": 40050,  "change": null, "change_pct": null, "shares":  68, "avg_price": 58800,  "value": 2723400, "pl": -1275000, "pl_pct": -31.8878 },
+    { "ticker": "036710.KS", "name": "선익시스템",   "price": 67600,  "change": null, "change_pct": null, "shares":  45, "avg_price": 91000,  "value": 3042000, "pl": -1053000, "pl_pct": -25.7143 },
+    { "ticker": "000720.KS", "name": "현대건설",     "price": 127300, "change": null, "change_pct": null, "shares":  25, "avg_price": 160800, "value": 3182500, "pl": -837500,  "pl_pct": -20.8333 }
   ],
   "briefing": "GitHub Actions 워크플로우가 활성화되면 매일 오전 7시(KST)에 AI 브리핑이 자동으로 생성됩니다."
 }

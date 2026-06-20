@@ -186,6 +186,18 @@
     }
     .briefing-text { font-size: 0.88rem; line-height: 1.85; white-space: pre-wrap; word-break: keep-all; }
 
+    .section-comment {
+      border-left: 3px solid rgba(88, 166, 255, 0.45);
+      background: rgba(88, 166, 255, 0.04);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--text-sub);
+      display: none;
+    }
+
     /* Responsive */
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -223,6 +235,7 @@
 
   <!-- 한국 지수 -->
   <div class="section-title">🇰🇷 한국 지수</div>
+  <div class="section-comment" id="kr-comment"></div>
   <div class="grid-2">
     <div class="card metric-card">
       <div class="label">KOSPI</div>
@@ -238,6 +251,7 @@
 
   <!-- 미국 지수 -->
   <div class="section-title">🇺🇸 미국 지수</div>
+  <div class="section-comment" id="us-comment"></div>
   <div class="grid-3">
     <div class="card metric-card">
       <div class="label">S&amp;P 500</div>
@@ -436,6 +450,14 @@
     const vix = d.vix || {};
     document.getElementById('vix-val').textContent = vix.value !== null && vix.value !== undefined ? fmt(vix.value, 2) : '—';
     applyChange(document.getElementById('vix-chg'), vix.change, vix.change_pct);
+
+    // 섹션 코멘트
+    const sc = d.section_comments || {};
+    [['kr', 'kr_indices'], ['us', 'us_indices']].forEach(([id, key]) => {
+      const el = document.getElementById(`${id}-comment`);
+      const text = (sc[key] || '').trim();
+      if (el && text) { el.textContent = text; el.style.display = 'block'; }
+    });
 
     // 공포탐욕
     const fg = d.fear_greed || {};
