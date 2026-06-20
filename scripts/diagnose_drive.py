@@ -1,253 +1,265 @@
 #!/usr/bin/env python3
 """
-구글 드라이브 연결 진단 스크립트
-GitHub Actions에서 workflow_dispatch로 수동 실행하여 에러 원인 확인용.
+구글 드라이브 연결 진단 스크립트 (파일 목록 + 날짜 로직 확인)
+GitHub Actions > 드라이브 연결 진단 > Run workflow 로 실행
 """
 
 import json
 import os
 import sys
+from datetime import datetime, timedelta
+
+import pytz
+
+KST = pytz.timezone("Asia/Seoul")
+
+# ── 헬퍼 ──────────────────────────────────────────────────────────────────────
+
+def section(title):
+    print("\n" + "=" * 65)
+    print(f"  {title}")
+    print("=" * 65)
 
 
-def check_credentials():
-    print("=" * 60)
-    print("1. GOOGLE_CREDENTIALS 파싱 테스트")
-    print("=" * 60)
+def ok(msg):  print(f"  ✅ {msg}")
+def err(msg): print(f"  ❌ {msg}")
+def info(msg):print(f"  ℹ️  {msg}")
+def warn(msg):print(f"  ⚠️  {msg}")
 
+
+# ── 1. 자격증명 파싱 ──────────────────────────────────────────────────────────
+
+def parse_credentials():
+    section("1. GOOGLE_CREDENTIALS 파싱")
     raw = os.environ.get("GOOGLE_CREDENTIALS", "")
     if not raw:
-        print("❌ GOOGLE_CREDENTIALS 환경변수가 없습니다.")
-        print("   GitHub 시크릿에 GOOGLE_CREDENTIALS를 등록했는지 확인하세요.")
+        err("환경변수 없음 — GitHub 시크릿 등록 여부 확인")
         return None
 
-    print(f"   환경변수 길이: {len(raw)} 자")
-    print(f"   첫 20자: {raw[:20]!r}")
+    info(f"환경변수 길이: {len(raw)}자  /  첫 30자: {raw[:30]!r}")
 
     try:
-        info = json.loads(raw)
+        creds = json.loads(raw)
     except json.JSONDecodeError as e:
-        print(f"❌ JSON 파싱 실패: {e}")
-        print("   시크릿 값이 유효한 JSON인지 확인하세요.")
+        err(f"JSON 파싱 실패: {e}")
         return None
 
-    required = ["type", "project_id", "client_email", "private_key"]
-    for key in required:
-        val = info.get(key, "")
-        if key == "private_key":
-            print(f"   ✅ {key}: {val[:40]}...")
-        else:
-            print(f"   ✅ {key}: {val}")
-        if not val:
-            print(f"   ❌ {key} 값이 비어 있습니다!")
-
-    if info.get("type") != "service_account":
-        print(f"   ❌ type이 'service_account'가 아님: {info.get('type')}")
-        return None
-
-    print(f"\n   서비스 계정 이메일: {info.get('client_email')}")
-    print("   ⚠️  위 이메일로 구글 드라이브 폴더를 공유했는지 확인하세요.")
-    return info
+    email = creds.get("client_email", "")
+    ok(f"파싱 성공")
+    ok(f"서비스 계정: {email}")
+    warn("위 이메일로 'Joshua 증권' 폴더가 공유되어 있어야 합니다")
+    return creds
 
 
-def build_service(info):
-    print("\n" + "=" * 60)
-    print("2. Google Drive API 연결 테스트")
-    print("=" * 60)
+# ── 2. Drive 서비스 생성 ──────────────────────────────────────────────────────
 
+def build_service(creds_info):
+    section("2. Drive API 서비스 생성")
     try:
         from google.oauth2 import service_account
         from googleapiclient.discovery import build
-        print("   ✅ google-auth 라이브러리 임포트 성공")
     except ImportError as e:
-        print(f"   ❌ 라이브러리 임포트 실패: {e}")
+        err(f"라이브러리 임포트 실패: {e}")
         return None
 
     try:
         creds = service_account.Credentials.from_service_account_info(
-            info,
+            creds_info,
             scopes=["https://www.googleapis.com/auth/drive"],
         )
-        service = build("drive", "v3", credentials=creds)
-        print("   ✅ Drive API 서비스 객체 생성 성공")
-        return service
+        svc = build("drive", "v3", credentials=creds)
+        ok("Drive API 서비스 객체 생성 성공")
+        return svc
     except Exception as e:
-        print(f"   ❌ 서비스 생성 실패: {e}")
+        err(f"서비스 생성 실패: {e}")
         return None
 
 
-def list_all_visible(service):
-    print("\n" + "=" * 60)
-    print("3. 서비스 계정이 볼 수 있는 모든 항목 (상위 20개)")
-    print("=" * 60)
+# ── 3. 날짜 로직 확인 ─────────────────────────────────────────────────────────
 
-    try:
-        res = service.files().list(
-            pageSize=20,
-            fields="files(id,name,mimeType,parents,sharedWithMe)",
-            includeItemsFromAllDrives=True,
-            supportsAllDrives=True,
-        ).execute()
-        files = res.get("files", [])
-        if not files:
-            print("   ⚠️  보이는 파일이 없습니다.")
-            print("   → 서비스 계정 이메일로 폴더를 공유했는지 확인하세요.")
-        for f in files:
-            mime = f.get("mimeType", "")
-            is_folder = "folder" in mime
-            shared = f.get("sharedWithMe", False)
-            tag = "📁" if is_folder else "📄"
-            print(f"   {tag} {f['name']}  (id={f['id']}, sharedWithMe={shared})")
-        return files
-    except Exception as e:
-        print(f"   ❌ files.list 실패: {e}")
-        return []
+def check_date_logic():
+    section("3. 날짜 검색 로직 확인")
+    now = datetime.now(KST)
+    yesterday = now - timedelta(days=1)
+
+    date_str   = now.strftime("%Y%m%d")
+    date_disp  = now.strftime("%Y-%m-%d")
+    month_str  = now.strftime("%Y-%m")
+
+    info(f"현재 KST 시각  : {now.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    info(f"검색할 date_str: '{date_str}'  (파일명에서 이 문자열 포함 여부 검색)")
+    info(f"어제 date_str  : '{yesterday.strftime('%Y%m%d')}'")
+    info(f"월 폴더명      : '{month_str}'")
+    print()
+    info("파일명 예시 매칭 테스트:")
+
+    samples = [
+        f"한국경제신문.{date_str}.A001.pdf",
+        f"한국경제신문.{date_str}.A024.pdf",
+        f"한국경제신문.{yesterday.strftime('%Y%m%d')}.A001.pdf",
+        "한국경제신문.20260620.A001.pdf",
+        "20260620_한경.pdf",
+    ]
+    for s in samples:
+        match = date_str in s
+        sym = "✅" if match else "  "
+        print(f"    {sym}  '{s}'  → contains '{date_str}': {match}")
+
+    return date_str, month_str
 
 
-def search_folder(service, name, parent_id=None):
-    print(f"\n   폴더 검색: '{name}'" + (f" (parent={parent_id})" if parent_id else " (전체)"))
+# ── 4. 폴더 탐색 ──────────────────────────────────────────────────────────────
 
-    conditions = [
+_DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
+
+
+def find_folder(svc, name, parent_id=None):
+    conds = [
         f"name='{name}'",
         "mimeType='application/vnd.google-apps.folder'",
         "trashed=false",
     ]
     if parent_id:
-        conditions.append(f"'{parent_id}' in parents")
+        conds.append(f"'{parent_id}' in parents")
+    res = svc.files().list(
+        q=" and ".join(conds),
+        fields="files(id,name)",
+        **_DRIVE_PARAMS,
+    ).execute()
+    files = res.get("files", [])
+    return files[0]["id"] if files else None
 
+
+def list_folder_contents(svc, folder_id, folder_name, page_size=100):
+    """폴더 내 모든 항목 나열 (필터 없음)"""
     try:
-        res = service.files().list(
-            q=" and ".join(conditions),
-            fields="files(id,name,parents)",
-            includeItemsFromAllDrives=True,
-            supportsAllDrives=True,
-        ).execute()
-        files = res.get("files", [])
-        if files:
-            print(f"   ✅ 발견: {files[0]['name']} (id={files[0]['id']})")
-            return files[0]["id"]
-        else:
-            print(f"   ❌ '{name}' 폴더를 찾을 수 없음")
-            return None
-    except Exception as e:
-        print(f"   ❌ 검색 실패: {e}")
-        return None
-
-
-def check_folder_tree(service):
-    print("\n" + "=" * 60)
-    print("4. 폴더 트리 탐색")
-    print("=" * 60)
-
-    root_id = search_folder(service, "Joshua 증권")
-    if not root_id:
-        print("\n   → 'Joshua 증권' 폴더가 공유되지 않았거나 이름이 다릅니다.")
-        print("   → 서비스 계정 이메일과 폴더를 다시 확인하세요.")
-
-        # 폴더만 필터링하여 다시 목록 확인
-        print("\n   현재 서비스 계정에 공유된 폴더 목록:")
-        try:
-            res = service.files().list(
-                q="mimeType='application/vnd.google-apps.folder' and trashed=false",
-                fields="files(id,name)",
-                includeItemsFromAllDrives=True,
-                supportsAllDrives=True,
-                pageSize=30,
-            ).execute()
-            folders = res.get("files", [])
-            if folders:
-                for f in folders:
-                    print(f"   📁 {f['name']} (id={f['id']})")
-            else:
-                print("   (공유된 폴더 없음)")
-        except Exception as e:
-            print(f"   ❌ 폴더 목록 조회 실패: {e}")
-        return
-
-    hk_id = search_folder(service, "한경 PDF", root_id)
-    if not hk_id:
-        print("\n   → 'Joshua 증권' 하위에 '한경 PDF' 폴더가 없습니다.")
-        # 하위 항목 나열
-        print("\n   'Joshua 증권' 폴더 내 항목:")
-        try:
-            res = service.files().list(
-                q=f"'{root_id}' in parents and trashed=false",
-                fields="files(id,name,mimeType)",
-                includeItemsFromAllDrives=True,
-                supportsAllDrives=True,
-            ).execute()
-            for f in res.get("files", []):
-                tag = "📁" if "folder" in f.get("mimeType","") else "📄"
-                print(f"   {tag} {f['name']}")
-        except Exception as e:
-            print(f"   ❌ {e}")
-        return
-
-    import pytz
-    from datetime import datetime
-    kst = pytz.timezone("Asia/Seoul")
-    month_folder = datetime.now(kst).strftime("%Y-%m")
-    month_id = search_folder(service, month_folder, hk_id)
-
-    if not month_id:
-        print(f"\n   → '한경 PDF' 하위에 '{month_folder}' 폴더가 없습니다.")
-        print("\n   '한경 PDF' 폴더 내 항목:")
-        try:
-            res = service.files().list(
-                q=f"'{hk_id}' in parents and trashed=false",
-                fields="files(id,name,mimeType)",
-                includeItemsFromAllDrives=True,
-                supportsAllDrives=True,
-            ).execute()
-            for f in res.get("files", []):
-                tag = "📁" if "folder" in f.get("mimeType","") else "📄"
-                print(f"   {tag} {f['name']}")
-        except Exception as e:
-            print(f"   ❌ {e}")
-        return
-
-    # PDF 목록 확인
-    print(f"\n   '{month_folder}' 폴더 내 PDF 파일:")
-    try:
-        from datetime import datetime
-        date_str = datetime.now(kst).strftime("%Y%m%d")
-        res = service.files().list(
-            q=f"'{month_id}' in parents and mimeType='application/pdf' and trashed=false",
-            fields="files(id,name,size)",
+        res = svc.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            fields="files(id,name,mimeType,size,modifiedTime)",
             orderBy="name",
-            includeItemsFromAllDrives=True,
-            supportsAllDrives=True,
+            pageSize=page_size,
+            **_DRIVE_PARAMS,
         ).execute()
-        pdfs = res.get("files", [])
-        print(f"   전체 PDF 수: {len(pdfs)}")
-        today_pdfs = [f for f in pdfs if date_str in f["name"]]
-        print(f"   오늘({date_str}) PDF 수: {len(today_pdfs)}")
-        for f in pdfs[:10]:
-            size_kb = int(f.get("size", 0)) // 1024
-            marker = " ← 오늘" if date_str in f["name"] else ""
-            print(f"   📄 {f['name']} ({size_kb}KB){marker}")
-        if len(pdfs) > 10:
-            print(f"   ... 외 {len(pdfs)-10}개")
+        items = res.get("files", [])
+        print(f"\n  📂 '{folder_name}' 내 항목 ({len(items)}개):")
+        for f in items:
+            is_dir = "folder" in f.get("mimeType", "")
+            tag = "📁" if is_dir else "📄"
+            size = f.get("size")
+            size_str = f"  {int(size)//1024}KB" if size else ""
+            mod = f.get("modifiedTime","")[:10]
+            print(f"    {tag} {f['name']}{size_str}  [{mod}]")
+        return items
     except Exception as e:
-        print(f"   ❌ PDF 목록 조회 실패: {e}")
+        err(f"폴더 목록 조회 실패: {e}")
+        return []
 
+
+def navigate_folders(svc, date_str, month_str):
+    section("4. 폴더 탐색")
+
+    root_id = find_folder(svc, "Joshua 증권")
+    if not root_id:
+        err("'Joshua 증권' 폴더를 찾을 수 없음")
+        warn("서비스 계정 이메일과 폴더 공유 여부 확인")
+        # 공유된 폴더 전체 출력
+        print("\n  서비스 계정에 공유된 폴더 전체:")
+        res = svc.files().list(
+            q="mimeType='application/vnd.google-apps.folder' and trashed=false",
+            fields="files(id,name)", pageSize=50, **_DRIVE_PARAMS,
+        ).execute()
+        for f in res.get("files", []):
+            print(f"    📁 {f['name']}  (id={f['id']})")
+        return None, None, None
+    ok(f"'Joshua 증권' 발견 (id={root_id})")
+
+    hk_id = find_folder(svc, "한경 PDF", root_id)
+    if not hk_id:
+        err("'한경 PDF' 폴더를 찾을 수 없음")
+        list_folder_contents(svc, root_id, "Joshua 증권")
+        return root_id, None, None
+    ok(f"'한경 PDF' 발견 (id={hk_id})")
+
+    month_id = find_folder(svc, month_str, hk_id)
+    if not month_id:
+        err(f"'{month_str}' 폴더를 찾을 수 없음")
+        list_folder_contents(svc, hk_id, "한경 PDF")
+        return root_id, hk_id, None
+    ok(f"'{month_str}' 발견 (id={month_id})")
+
+    return root_id, hk_id, month_id
+
+
+# ── 5. PDF 파일 목록 전체 출력 ────────────────────────────────────────────────
+
+def list_all_pdfs(svc, month_id, month_str, date_str):
+    section(f"5. '{month_str}' 폴더 내 전체 파일 목록")
+
+    all_items = list_folder_contents(svc, month_id, month_str, page_size=200)
+
+    if not all_items:
+        err("파일이 없거나 조회 실패")
+        return
+
+    pdfs = [f for f in all_items if f.get("mimeType") == "application/pdf"]
+    non_pdfs = [f for f in all_items if f.get("mimeType") != "application/pdf"]
+
+    print(f"\n  요약: 전체 {len(all_items)}개 / PDF {len(pdfs)}개 / 기타 {len(non_pdfs)}개")
+
+    section("6. 오늘 날짜 검색 시뮬레이션")
+    info(f"검색 조건: 파일명에 '{date_str}' 포함 AND mimeType=application/pdf")
+    print()
+
+    matched = [f for f in pdfs if date_str in f["name"]]
+    unmatched = [f for f in pdfs if date_str not in f["name"]]
+
+    if matched:
+        ok(f"매칭된 PDF: {len(matched)}개")
+        for f in matched:
+            print(f"    📄 {f['name']}")
+    else:
+        err(f"'{date_str}' 포함 PDF 없음")
+        if pdfs:
+            # 실제 파일명의 날짜 패턴 추출
+            print("\n  실제 파일명 샘플 (최대 5개):")
+            for f in pdfs[:5]:
+                print(f"    📄 {f['name']}")
+
+            # 날짜 후보 추출
+            import re
+            dates_found = set()
+            for f in pdfs:
+                m = re.findall(r'\d{8}', f["name"])
+                dates_found.update(m)
+            if dates_found:
+                print(f"\n  파일명에서 발견된 날짜 패턴: {sorted(dates_found, reverse=True)}")
+                warn(f"코드가 찾는 날짜: '{date_str}' — 위 날짜와 다르면 날짜 불일치")
+
+
+# ── 메인 ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print("\n🔍 구글 드라이브 연결 진단 시작\n")
+    print("\n🔍 구글 드라이브 진단 (파일 목록 + 날짜 로직)\n")
 
-    info = check_credentials()
-    if not info:
+    creds = parse_credentials()
+    if not creds:
         sys.exit(1)
 
-    service = build_service(info)
-    if not service:
+    svc = build_service(creds)
+    if not svc:
         sys.exit(1)
 
-    list_all_visible(service)
-    check_folder_tree(service)
+    date_str, month_str = check_date_logic()
 
-    print("\n" + "=" * 60)
-    print("진단 완료")
-    print("=" * 60)
+    root_id, hk_id, month_id = navigate_folders(svc, date_str, month_str)
+    if not month_id:
+        sys.exit(1)
+
+    list_all_pdfs(svc, month_id, month_str, date_str)
+
+    print("\n" + "=" * 65)
+    print("  진단 완료 — 위 출력 결과를 공유해주세요")
+    print("=" * 65 + "\n")
 
 
 if __name__ == "__main__":
