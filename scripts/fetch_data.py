@@ -19,8 +19,8 @@ import yfinance as yf
 PORTFOLIO = {
     "010140.KS": {"name": "삼성중공업",   "shares": 165, "avg_price": 30156},
     "189300.KS": {"name": "인텔리안테크", "shares":  25, "avg_price": 168500},
-    "329180.KS": {"name": "한중엔시에스", "shares":  68, "avg_price": 58800},
-    "036710.KS": {"name": "선익시스템",   "shares":  45, "avg_price": 91000},
+    "107640.KS": {"name": "한중엔시에스", "shares":  68, "avg_price": 58800},
+    "171090.KS": {"name": "선익시스템",   "shares":  45, "avg_price": 91000},
     "000720.KS": {"name": "현대건설",     "shares":  25, "avg_price": 160800},
 }
 

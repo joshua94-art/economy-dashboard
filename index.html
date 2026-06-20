@@ -8,18 +8,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0d1117;
-      --bg-card: #161b22;
-      --bg-card-hover: #1c2128;
-      --border: #30363d;
-      --text: #e6edf3;
-      --text-sub: #8b949e;
-      --green: #3fb950;
-      --red: #f85149;
-      --blue: #58a6ff;
-      --yellow: #e3b341;
-      --purple: #bc8cff;
-      --orange: #f0883e;
+      --bg: #f6f8fa;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f0f2f5;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --text-sub: #57606a;
+      --green: #cf222e;   /* 상승 = 빨간색 (한국 증시) */
+      --red: #0550ae;     /* 하락 = 파란색 (한국 증시) */
+      --blue: #0969da;
+      --yellow: #9a6700;
+      --purple: #8250df;
+      --orange: #bf8700;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -61,8 +61,8 @@
 
     /* Exchange Rate */
     .exchange-card {
-      background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
-      border: 1px solid #2d4a7a;
+      background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+      border: 1px solid #bfdbfe;
       border-radius: 12px;
       padding: 22px 28px;
       margin-bottom: 20px;
@@ -125,10 +125,10 @@
       top: -5px;
       width: 4px;
       height: 20px;
-      background: white;
+      background: #1f2328;
       border-radius: 2px;
       transform: translateX(-50%);
-      box-shadow: 0 0 6px rgba(255,255,255,0.6);
+      box-shadow: 0 0 6px rgba(0,0,0,0.25);
       transition: left 0.5s ease;
     }
     .fg-value {
@@ -178,8 +178,8 @@
       gap: 5px;
       font-size: 0.68rem;
       color: var(--purple);
-      background: rgba(188, 140, 255, 0.1);
-      border: 1px solid rgba(188, 140, 255, 0.3);
+      background: rgba(130, 80, 223, 0.07);
+      border: 1px solid rgba(130, 80, 223, 0.25);
       border-radius: 20px;
       padding: 2px 10px;
       margin-bottom: 14px;
@@ -187,8 +187,8 @@
     .briefing-text { font-size: 0.88rem; line-height: 1.85; white-space: pre-wrap; word-break: keep-all; }
 
     .section-comment {
-      border-left: 3px solid rgba(88, 166, 255, 0.45);
-      background: rgba(88, 166, 255, 0.04);
+      border-left: 3px solid rgba(9, 105, 218, 0.4);
+      background: rgba(9, 105, 218, 0.05);
       border-radius: 0 6px 6px 0;
       padding: 10px 16px;
       margin-bottom: 12px;
@@ -388,11 +388,11 @@
   }
 
   function getFGColor(v) {
-    if (v <= 24) return 'var(--red)';
-    if (v <= 44) return 'var(--orange)';
-    if (v <= 55) return 'var(--yellow)';
-    if (v <= 75) return 'var(--green)';
-    return 'var(--blue)';
+    if (v <= 24) return '#e53935';   // 극도의 공포
+    if (v <= 44) return '#ef6c00';   // 공포
+    if (v <= 55) return '#9a6700';   // 중립
+    if (v <= 75) return '#2e7d32';   // 탐욕
+    return '#1565c0';                // 극도의 탐욕
   }
 
   function getFGLabel(v) {
