@@ -17,11 +17,15 @@ import yfinance as yf
 # 포트폴리오 설정 — shares와 avg_price를 실제 값으로 수정
 # ============================================================
 PORTFOLIO = {
-    "010140.KS": {"name": "삼성중공업",   "shares": 165, "avg_price": 30156},
-    "189300.KS": {"name": "인텔리안테크", "shares":  25, "avg_price": 168500},
-    "107640.KS": {"name": "한중엔시에스", "shares":  68, "avg_price": 58800},
-    "171090.KS": {"name": "선익시스템",   "shares":  45, "avg_price": 91000},
-    "000720.KS": {"name": "현대건설",     "shares":  25, "avg_price": 160800},
+    "010140.KS": {"name": "삼성중공업",            "shares": 165, "avg_price": 30156,  "currency": "KRW"},
+    "189300.KS": {"name": "인텔리안테크",           "shares":  25, "avg_price": 168500, "currency": "KRW"},
+    "107640.KS": {"name": "한중엔시에스",           "shares":  68, "avg_price": 58800,  "currency": "KRW"},
+    "171090.KS": {"name": "선익시스템",             "shares":  45, "avg_price": 91000,  "currency": "KRW"},
+    "000720.KS": {"name": "현대건설",               "shares":  25, "avg_price": 160800, "currency": "KRW"},
+    "0004G0.KS": {"name": "1Q 미국배당TOP30",       "shares":  63, "avg_price": 9385,   "currency": "KRW"},
+    "458730.KS": {"name": "TIGER 미국배당다우존스", "shares":  52, "avg_price": 15198,  "currency": "KRW"},
+    "SPYM":      {"name": "SPDR Portfolio S&P 500", "shares":  17, "avg_price": 82.66,  "currency": "USD"},
+    "QBTS":      {"name": "디웨이브퀀텀",           "shares":  65, "avg_price": 29.90,  "currency": "USD"},
 }
 
 
@@ -119,15 +123,18 @@ def main() -> None:
     portfolio = []
     for ticker, cfg in PORTFOLIO.items():
         d = get_price_data(ticker)
-        price  = d["price"] if d else None
-        shares = cfg["shares"]
-        avg    = cfg["avg_price"]
-        value  = round(price * shares, 0) if price and shares > 0 else 0
-        pl     = round((price - avg) * shares, 0) if price and shares > 0 and avg > 0 else 0
+        price    = d["price"] if d else None
+        shares   = cfg["shares"]
+        avg      = cfg["avg_price"]
+        currency = cfg.get("currency", "KRW")
+        decimals = 2 if currency == "USD" else 0
+        value  = round(price * shares, decimals) if price and shares > 0 else 0
+        pl     = round((price - avg) * shares, decimals) if price and shares > 0 and avg > 0 else 0
         pl_pct = round((price - avg) / avg * 100, 4) if price and avg > 0 else 0
         portfolio.append({
             "ticker":     ticker,
             "name":       cfg["name"],
+            "currency":   currency,
             "price":      round(price, 2) if price else None,
             "change":     round(d["change"], 2) if d else None,
             "change_pct": round(d["change_pct"], 4) if d else None,

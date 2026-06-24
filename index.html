@@ -166,6 +166,51 @@
       transition: all 0.15s; font-family: inherit;
     }
     .report-cat-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .report-msg { text-align: center; color: var(--text-sub); padding: 32px; font-size: 0.82rem; }
+
+    /* ── 섹터 형식 (신규) ── */
+    .sector-section { margin-bottom: 10px; }
+    .sector-heading {
+      font-size: 0.82rem; font-weight: 600; padding: 9px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px 6px 0 0; border-bottom: none;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
+    }
+    .sector-heading:hover { background: var(--bg-card-hover); }
+    .sector-count { font-size: 0.68rem; color: var(--text-sub); }
+    .sector-content { border: 1px solid var(--border); border-radius: 0 0 6px 6px; overflow: hidden; }
+    .sector-flow {
+      padding: 12px 16px 14px; font-size: 0.82rem; line-height: 1.85;
+      background: linear-gradient(to right, rgba(9,105,218,0.07) 0%, rgba(9,105,218,0.02) 100%);
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--blue); color: var(--text); word-break: keep-all;
+    }
+    .sector-flow-label {
+      font-size: 0.63rem; font-weight: 700; color: var(--blue);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+    }
+    .sector-articles-label {
+      padding: 6px 16px; font-size: 0.65rem; font-weight: 600;
+      color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+    }
+    .article-num {
+      font-size: 0.74rem; color: var(--blue); font-weight: 700;
+      margin-right: 6px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
+    }
+    .sector-article {
+      padding: 9px 16px; border-bottom: 1px solid var(--border);
+      background: var(--bg-card); display: flex; gap: 8px; align-items: baseline;
+      transition: background 0.12s;
+    }
+    .sector-article:last-child { border-bottom: none; }
+    .sector-article:hover { background: var(--bg-card-hover); }
+    .article-title { font-size: 0.83rem; font-weight: 600; flex-shrink: 0; }
+    .article-sep { color: var(--border); font-size: 0.78rem; flex-shrink: 0; }
+    .article-key { font-size: 0.78rem; color: var(--text-sub); line-height: 1.55; }
+
+    /* ── 구형 카테고리 형식 (하위호환) ── */
     .report-cat-section { margin-bottom: 12px; }
     .report-cat-heading {
       font-size: 0.82rem; font-weight: 600; padding: 9px 14px;
@@ -191,7 +236,6 @@
       padding: 2px 9px; cursor: pointer; white-space: nowrap; font-family: inherit;
     }
     .report-trend-btn:hover { background: rgba(9,105,218,0.07); }
-    .report-msg { text-align: center; color: var(--text-sub); padding: 32px; font-size: 0.82rem; }
 
     /* ── 누적 흐름 패널 ── */
     .trend-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.14); z-index: 200; display: none; }
@@ -652,15 +696,18 @@
         const chgCls = (s.change_pct||0) > 0 ? 'up' : (s.change_pct||0) < 0 ? 'down' : 'neutral';
         const plCls  = (s.pl||0) > 0 ? 'up' : (s.pl||0) < 0 ? 'down' : 'neutral';
         const sign   = v => Number(v) > 0 ? '+' : '';
+        const isUSD  = s.currency === 'USD';
+        const pFmt   = isUSD ? (v => '$'+fmt(v,2)) : (v => fmt(v,0)+'원');
+        const cFmt   = isUSD ? (v => '$'+fmt(v,2)) : (v => fmt(v,0));
         return `<tr>
           <td><div class="stock-name">${s.name}</div><div class="stock-ticker">${s.ticker}</div></td>
-          <td>${hasP ? fmt(s.price,0)+'원' : naCell('—')}</td>
-          <td class="${hasP?chgCls:''}">${hasP ? sign(s.change)+fmt(s.change,0) : naCell('—')}</td>
+          <td>${hasP ? pFmt(s.price) : naCell('—')}</td>
+          <td class="${hasP?chgCls:''}">${hasP ? sign(s.change)+cFmt(s.change) : naCell('—')}</td>
           <td class="${hasP?chgCls:''}">${hasP ? sign(s.change_pct)+fmt(s.change_pct,2)+'%' : naCell('—')}</td>
           <td>${s.shares>0 ? fmt(s.shares,0)+'주' : naCell('미설정')}</td>
-          <td>${hasH ? fmt(s.avg_price,0)+'원' : naCell('—')}</td>
-          <td>${hasH ? fmt(s.value,0)+'원' : naCell('—')}</td>
-          <td class="${hasH?plCls:''}">${hasH ? sign(s.pl)+fmt(s.pl,0)+'원' : naCell('—')}</td>
+          <td>${hasH ? pFmt(s.avg_price) : naCell('—')}</td>
+          <td>${hasH ? pFmt(s.value) : naCell('—')}</td>
+          <td class="${hasH?plCls:''}">${hasH ? sign(s.pl)+cFmt(s.pl) : naCell('—')}</td>
           <td class="${hasH?plCls:''}">${hasH ? sign(s.pl_pct)+fmt(s.pl_pct,2)+'%' : naCell('—')}</td>
         </tr>`;
       }).join('');
@@ -684,7 +731,14 @@
   loadData();
 
   // ── 한경 뉴스 리포트 ────────────────────────────────────
-  const CAT_ICONS = { '경제일반':'📊','산업/기업':'🏭','국제':'🌐','정치/정책':'🏛️','금융/증권':'💹','부동산':'🏢' };
+  const CAT_ICONS = {
+    // 신규 섹터
+    '반도체/AI':'🔬', '배터리/EV':'🔋', '바이오/제약':'💊', '자동차/모빌리티':'🚗',
+    '에너지/소재':'⚡', '금융/증권':'💹', '부동산/건설':'🏢', '글로벌/경제':'🌐',
+    '정책/정치':'🏛️', '유통/소비':'🛒',
+    // 구형 카테고리 (하위호환)
+    '경제일반':'📊', '산업/기업':'🏭', '국제':'🌐', '정치/정책':'🏛️', '부동산':'🏢',
+  };
   const RCACHE = {};
   let rCatFilter = 'all';
 
@@ -733,6 +787,43 @@
     document.getElementById('report-meta').textContent =
       `생성: ${data.generated_at||data.date}  ·  PDF ${data.pdf_count||'?'}페이지${fallback}`;
     document.getElementById('report-updated-at').textContent = data.generated_at || '';
+    if (data.sectors) renderSectorReport(data);
+    else renderLegacyReport(data);
+  }
+
+  function renderSectorReport(data) {
+    const sectors = Object.keys(data.sectors || {});
+    document.getElementById('report-cat-tabs').innerHTML =
+      `<button class="report-cat-tab${rCatFilter==='all'?' active':''}" onclick="rFilter('all')">전체</button>` +
+      sectors.map(s => `<button class="report-cat-tab${rCatFilter===s?' active':''}" data-cat="${s}" onclick="rFilter('${s}')">${CAT_ICONS[s]||''} ${s}</button>`).join('');
+    const bodyEl = document.getElementById('report-body');
+    if (!sectors.length) { bodyEl.innerHTML = '<div class="report-msg">분석 결과가 없습니다.</div>'; return; }
+    const CIRCLED = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+    bodyEl.innerHTML = sectors.map(sector => {
+      const sd = data.sectors[sector] || {};
+      const articles = sd.articles || [];
+      const hidden = rCatFilter !== 'all' && rCatFilter !== sector;
+      return `<div class="sector-section" data-cat="${sector}" style="${hidden?'display:none':''}">
+        <div class="sector-heading" onclick="rToggle(this)">
+          <span>${CAT_ICONS[sector]||''} ${sector}</span>
+          <span class="sector-count">${articles.length}건 ▾</span>
+        </div>
+        <div class="sector-content">
+          ${sd.flow ? `<div class="sector-flow"><div class="sector-flow-label">흐름 분석</div>${esc(sd.flow)}</div>` : ''}
+          ${articles.length ? `<div class="sector-articles-label">관련 기사 ${articles.length}건</div>` : ''}
+          <div>${articles.map((a,i) => `
+            <div class="sector-article">
+              <span class="article-num">${CIRCLED[i]||String(i+1)+'.'}</span>
+              <span class="article-title">${esc(a.title||'')}</span>
+              ${a.key_sentence ? `<span class="article-sep">|</span><span class="article-key">${esc(a.key_sentence)}</span>` : ''}
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderLegacyReport(data) {
     const cats = Object.keys(data.categories || {});
     document.getElementById('report-cat-tabs').innerHTML =
       `<button class="report-cat-tab${rCatFilter==='all'?' active':''}" onclick="rFilter('all')">전체</button>` +
@@ -759,16 +850,20 @@
 
   function rFilter(cat) {
     rCatFilter = cat;
-    document.querySelectorAll('.report-cat-tab').forEach(el => el.classList.toggle('active', cat==='all' ? el.textContent.trim()==='전체' : el.dataset.cat===cat));
-    document.querySelectorAll('.report-cat-section').forEach(el => { el.style.display = (cat==='all'||el.dataset.cat===cat)?'':'none'; });
+    document.querySelectorAll('.report-cat-tab').forEach(el =>
+      el.classList.toggle('active', cat==='all' ? !el.dataset.cat : el.dataset.cat===cat)
+    );
+    document.querySelectorAll('#report-body [data-cat]').forEach(el => {
+      el.style.display = (cat==='all' || el.dataset.cat===cat) ? '' : 'none';
+    });
   }
 
   function rToggle(heading) {
     const list = heading.nextElementSibling;
     const closing = list.style.display !== 'none';
     list.style.display = closing ? 'none' : '';
-    const cnt = heading.querySelector('.report-cat-count');
-    cnt.textContent = cnt.textContent.replace(/[▾▸]/, closing?'▸':'▾');
+    const cnt = heading.querySelector('.report-cat-count') || heading.querySelector('.sector-count');
+    if (cnt) cnt.textContent = cnt.textContent.replace(/[▾▸]/, closing?'▸':'▾');
   }
 
   function openTrend(ev, cat, idx) {

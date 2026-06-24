@@ -32,7 +32,10 @@ from googleapiclient.http import MediaIoBaseDownload
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 REPORT_DIR = "data/reports"
-CATEGORIES = ["경제일반", "산업/기업", "국제", "정치/정책", "금융/증권", "부동산"]
+SECTORS = [
+    "반도체/AI", "배터리/EV", "바이오/제약", "자동차/모빌리티",
+    "에너지/소재", "금융/증권", "부동산/건설", "글로벌/경제", "정책/정치", "유통/소비",
+]
 
 # 공통 파라미터: 서비스 계정이 공유 드라이브까지 검색하도록
 _DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
@@ -160,23 +163,60 @@ def extract_text(pdf_bytes: bytes, filename: str) -> str:
     return "\n\n".join(parts)
 
 
-# ── Claude 분석 ───────────────────────────────────────────────────────────────
+# ── Claude 분석 (2단계 파이프라인) ───────────────────────────────────────────
 
-def analyze(text: str, date_display: str) -> dict:
+def extract_article_list(text: str) -> str:
+    """
+    1단계: PDF 원문 → 기사 제목+핵심 문장 목록으로 압축 (Haiku 사용)
+    광고·시황표·날씨 등 비기사 콘텐츠를 제거하고 구조화된 목록으로 만든다.
+    """
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    resp = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=4000,
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    "신문 PDF에서 추출한 텍스트입니다. 각 기사를 식별하고 아래 형식으로만 출력하세요.\n\n"
+                    "출력 형식:\n"
+                    "## [기사 제목]\n"
+                    "핵심: [가장 중요한 팩트 1줄 — 수치·날짜·고유명사 포함, 50자 이내]\n\n"
+                    "규칙:\n"
+                    "- 광고, 날씨, 증시 시황표, 인명/부고, 페이지 헤더·풋터는 제외\n"
+                    "- 기사 제목이 없으면 내용에서 핵심 주제를 15자 이내로 작성\n"
+                    "- 기사당 '핵심' 줄은 반드시 1개만, 설명 없이 출력\n\n"
+                    f"[원문]\n{text[:60000]}"
+                ),
+            }
+        ],
+    )
+    return resp.content[0].text.strip()
+
+
+def analyze(article_list: str, date_display: str) -> dict:
+    """
+    2단계: 압축된 기사 목록 → 섹터 분류 + 인과 흐름 서술 (Sonnet 사용)
+    같은 섹터 기사들을 연결해 하나의 서사로 설명한다.
+    """
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     template = json.dumps(
-        {c: [{"title": "...", "summary": "...", "keywords": ["..."]}] for c in CATEGORIES},
+        {s: {"flow": "...", "articles": [{"title": "...", "key_sentence": "..."}]} for s in SECTORS},
         ensure_ascii=False,
     )
 
     resp = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
+        max_tokens=8000,
         system=[
             {
                 "type": "text",
-                "text": "당신은 한국 경제 전문 에디터입니다. 신문 텍스트를 읽고 주요 기사를 정확히 분류·요약합니다.",
+                "text": (
+                    "당신은 한국 경제 전문 에디터입니다. "
+                    "산업 섹터별로 기사를 분류하고, 같은 섹터 기사들이 어떤 인과 흐름으로 연결되는지 "
+                    "하나의 서사로 설명합니다."
+                ),
                 "cache_control": {"type": "ephemeral"},
             }
         ],
@@ -184,12 +224,24 @@ def analyze(text: str, date_display: str) -> dict:
             {
                 "role": "user",
                 "content": (
-                    f"다음은 한국경제신문 {date_display}자 지면 텍스트입니다.\n"
-                    f"카테고리: {', '.join(CATEGORIES)}\n\n"
-                    "주요 기사를 분류·요약하여 아래 형식의 JSON만 출력하세요 (마크다운 없이).\n"
-                    "각 카테고리 최대 5건, 중요도 순, 기사 없으면 빈 배열.\n"
-                    f"형식: {template}\n\n"
-                    f"[신문 텍스트]\n{text[:40000]}"
+                    f"다음은 한국경제신문 {date_display}자 기사 목록입니다.\n\n"
+                    "▶ 지침:\n"
+                    "1. 각 기사를 아래 섹터 중 1개에 배정:\n"
+                    f"   {', '.join(SECTORS)}\n\n"
+                    "2. 각 기사에서:\n"
+                    "   - title: 기사 제목 원문 그대로\n"
+                    "   - key_sentence: 핵심 팩트 1개 (수치·고유명사 포함, 40자 이내, 명사형 종결)\n"
+                    "     좋은 예) '삼성전자 2Q 영업이익 12조, 전년比 +60%'\n"
+                    "     나쁜 예) '반도체 업황이 개선되고 있다'\n\n"
+                    "3. 섹터별 '흐름' 작성 (3~5문장):\n"
+                    "   - 섹터 내 기사들의 인과관계·트렌드를 연결해 하나의 스토리로 서술\n"
+                    "   - 구체적 기업명·수치·정책명을 언급하며\n"
+                    "     'A가 → B로 이어지고 → C를 시사'하는 흐름 구조로\n"
+                    "   - 단순 나열 금지. 기사들이 왜 함께 읽혀야 하는지 맥락을 설명\n"
+                    "   - 기사 1건이면 해당 사안의 배경·맥락·시사점을 2~3문장으로\n\n"
+                    "4. 기사 없는 섹터는 JSON에서 제외\n\n"
+                    f"출력 형식 (JSON만, 마크다운 코드블록 없이):\n{template}\n\n"
+                    f"[기사 목록]\n{article_list}"
                 ),
             }
         ],
@@ -276,19 +328,24 @@ def main() -> None:
         print("  텍스트 추출 실패. 종료.")
         return
 
-    # ── Claude 분석 ──
-    print("  Claude 분석 중...")
-    categories = analyze(combined, date_display)
+    # ── 1단계: 기사 목록 압축 (Haiku) ──
+    print("  [1/2] 기사 목록 압축 중 (Haiku)...")
+    article_list = extract_article_list(combined)
+    print(f"  압축 완료: {len(article_list):,}자")
+
+    # ── 2단계: 섹터 분류 + 흐름 분석 (Sonnet) ──
+    print("  [2/2] 섹터 흐름 분석 중 (Sonnet)...")
+    sectors = analyze(article_list, date_display)
 
     # ── 로컬 저장 ──
     os.makedirs(REPORT_DIR, exist_ok=True)
     report = {
         "date": date_display,
         "generated_at": now.strftime("%Y-%m-%d %H:%M KST"),
-        "pdf_date": actual_date_str,          # 실제 PDF 날짜
+        "pdf_date": actual_date_str,
         "pdf_count": len(pdfs),
-        "is_fallback": is_fallback,           # 대체 날짜 사용 여부
-        "categories": categories,
+        "is_fallback": is_fallback,
+        "sectors": sectors,
     }
     path = f"{REPORT_DIR}/{date_display}.json"
     with open(path, "w", encoding="utf-8") as f:
