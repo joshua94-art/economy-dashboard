@@ -757,7 +757,7 @@
       dates.forEach(d => { const o = document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
       sel.style.display = '';
       sel.addEventListener('change', () => showReport(sel.value));
-      dates.forEach(d => fetchReport(d, true));
+      dates.slice(0, 5).forEach(d => fetchReport(d, true));
       showReport(dates[0]);
     } catch {
       document.getElementById('report-meta').textContent = '리포트 인덱스를 불러올 수 없습니다.';
