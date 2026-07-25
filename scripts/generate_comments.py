@@ -9,6 +9,8 @@ import os
 
 import anthropic
 
+from usage_log import record
+
 DATA_PATH = "data/market_data.json"
 
 SYSTEM_PROMPT = """당신은 경제·금융 전문 분석가입니다. 매일 아침 투자자들을 위한 간결하고 통찰력 있는 시장 분석을 제공합니다.
@@ -113,6 +115,7 @@ def generate_all_comments(data: dict) -> dict:
         ],
         messages=[{"role": "user", "content": user_msg}],
     )
+    record("대시보드-브리핑", response)
 
     raw = response.content[0].text.strip()
     # 마크다운 코드블록이 포함된 경우 제거

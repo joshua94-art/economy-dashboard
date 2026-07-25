@@ -19,6 +19,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
+from usage_log import record
+
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 REPORT_DIR = "data/kb_reports"
 _DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
@@ -194,6 +196,7 @@ def analyze(morning_text: str, close_text: str, date_display: str) -> dict:
             system=system,
             messages=[{"role": "user", "content": prompt}],
         )
+        record("KB-개념분석", resp)
 
         raw = resp.content[0].text
         print(f"  응답 {len(raw)}자 수신 (stop_reason={resp.stop_reason})")

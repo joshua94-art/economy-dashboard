@@ -31,6 +31,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
+from usage_log import record
+
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 REPORT_DIR = "data/reports"
 SECTORS = [
@@ -159,6 +161,7 @@ def _extract_articles_from_text(text: str, filename: str) -> str:
             ),
         }],
     )
+    record("한경-기사추출", resp, detail=filename)
     return resp.content[0].text.strip()
 
 
@@ -284,6 +287,7 @@ def analyze(article_list: str, date_display: str) -> dict:
             }],
             messages=prompt_messages,
         )
+        record("한경-섹터종합", resp, detail=f"attempt{attempt+1}")
 
         raw = resp.content[0].text.strip()
         # 마크다운 코드블록 제거 (```json ... ``` 형태 대응)
