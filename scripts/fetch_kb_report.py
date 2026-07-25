@@ -212,12 +212,26 @@ def analyze(morning_text: str, close_text: str, date_display: str) -> dict:
 
 # ── 인덱스 관리 ───────────────────────────────────────────────────────────────
 
-def update_index(date_display: str) -> None:
+def load_index() -> dict:
     path = f"{REPORT_DIR}/index.json"
-    idx = {"dates": []}
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
-            idx = json.load(f)
+            return json.load(f)
+    return {"dates": []}
+
+
+def get_existing_dates() -> set[str]:
+    """이미 처리된 날짜를 YYYYMMDD 형식의 집합으로 반환."""
+    idx = load_index()
+    result = set()
+    for d in idx.get("dates", []):
+        result.add(d.replace("-", ""))
+    return result
+
+
+def update_index(date_display: str) -> None:
+    path = f"{REPORT_DIR}/index.json"
+    idx = load_index()
     if date_display not in idx["dates"]:
         idx["dates"].insert(0, date_display)
     idx["dates"] = idx["dates"][:60]
@@ -263,6 +277,10 @@ def main() -> None:
     morning_file, close_file, actual_date_str = find_kb_pdfs(service, month_id, today_str)
     if not morning_file and not close_file:
         print("KB PDF 파일이 없습니다. 종료.")
+        return
+
+    if actual_date_str in get_existing_dates():
+        print(f"  이미 처리된 날짜({actual_date_str})입니다. 스킵합니다.")
         return
 
     date_display = f"{actual_date_str[:4]}-{actual_date_str[4:6]}-{actual_date_str[6:]}"
