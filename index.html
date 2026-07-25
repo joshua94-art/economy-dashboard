@@ -72,6 +72,19 @@
     .down { color: var(--down); }
     .neutral { color: var(--text-sub); }
 
+    /* ── 종합 시장 진단 ── */
+    .diagnosis-card { margin-bottom: 20px; }
+    .diagnosis-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.8rem; font-weight: 700;
+      border-radius: 20px; padding: 4px 14px; margin-bottom: 10px;
+    }
+    .diagnosis-badge.phase-tighten { color: var(--orange); background: rgba(191,135,0,0.08); border: 1px solid rgba(191,135,0,0.3); }
+    .diagnosis-badge.phase-ease    { color: var(--blue);   background: rgba(9,105,218,0.08); border: 1px solid rgba(9,105,218,0.3); }
+    .diagnosis-badge.phase-watch   { color: var(--purple); background: rgba(130,80,223,0.08); border: 1px solid rgba(130,80,223,0.3); }
+    .diagnosis-badge.phase-none    { color: var(--text-sub); background: rgba(87,96,106,0.08); border: 1px solid var(--border); }
+    .diagnosis-summary { font-size: 0.86rem; line-height: 1.8; color: var(--text); word-break: keep-all; }
+
     /* ── 환율 ── */
     .exchange-card {
       background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);
@@ -90,9 +103,11 @@
     .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 20px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
     .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 20px; }
     .metric-card .label { font-size: 0.76rem; color: var(--text-sub); margin-bottom: 5px; }
     .metric-card .value { font-family: 'JetBrains Mono', monospace; font-size: 1.18rem; font-weight: 600; margin-bottom: 4px; }
     .metric-card .change { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; }
+    .macro-interp { font-size: 0.72rem; color: var(--text-sub); line-height: 1.5; }
 
     /* ── 공포탐욕 ── */
     .fear-greed-card { display: flex; flex-direction: column; align-items: center; }
@@ -357,10 +372,11 @@
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2,1fr); }
       .grid-3 { grid-template-columns: repeat(2,1fr); }
+      .grid-5 { grid-template-columns: repeat(3,1fr); }
     }
     @media (max-width: 600px) {
       .content { padding: 14px 16px; }
-      .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr 1fr; }
+      .grid-2,.grid-3,.grid-4,.grid-5 { grid-template-columns: 1fr 1fr; }
       .exchange-value { font-size: 1.55rem; }
       .exchange-card { flex-direction: column; gap: 10px; align-items: flex-start; }
       .tab-btn { padding: 12px 12px; font-size: 0.78rem; }
@@ -385,6 +401,42 @@
     <h1>📊 경제 대시보드</h1>
     <span class="updated-at" id="updated-at">로딩 중...</span>
   </header>
+
+  <!-- 종합 시장 진단 -->
+  <div class="card diagnosis-card">
+    <div class="diagnosis-badge phase-none" id="diagnosis-phase">—</div>
+    <div class="diagnosis-summary neutral" id="diagnosis-summary">로딩 중...</div>
+  </div>
+
+  <!-- 거시 지표 -->
+  <div class="section-title">🏦 거시 지표</div>
+  <div class="grid-5">
+    <div class="card metric-card macro-card">
+      <div class="label">미국 기준금리</div>
+      <div class="value" id="macro-us-rate-val">—</div>
+      <div class="macro-interp" id="macro-us-rate-interp">—</div>
+    </div>
+    <div class="card metric-card macro-card">
+      <div class="label">미국 10년물 국채</div>
+      <div class="value" id="macro-us-10y-val">—</div>
+      <div class="macro-interp" id="macro-us-10y-interp">—</div>
+    </div>
+    <div class="card metric-card macro-card">
+      <div class="label">미국 CPI (전년比)</div>
+      <div class="value" id="macro-us-cpi-val">—</div>
+      <div class="macro-interp" id="macro-us-cpi-interp">—</div>
+    </div>
+    <div class="card metric-card macro-card">
+      <div class="label">미국 실업률</div>
+      <div class="value" id="macro-us-unemp-val">—</div>
+      <div class="macro-interp" id="macro-us-unemp-interp">—</div>
+    </div>
+    <div class="card metric-card macro-card">
+      <div class="label">한국 기준금리</div>
+      <div class="value" id="macro-kr-rate-val">—</div>
+      <div class="macro-interp" id="macro-kr-rate-interp">—</div>
+    </div>
+  </div>
 
   <!-- 환율 -->
   <div class="exchange-card">
@@ -633,8 +685,53 @@
   }
   function naCell(c) { return `<span class="na">${c}</span>`; }
 
+  const DIAGNOSIS_STYLE = {
+    '긴축 국면': { cls: 'phase-tighten', icon: '🔥' },
+    '완화 기대': { cls: 'phase-ease',    icon: '🌤️' },
+    '관망세':    { cls: 'phase-watch',   icon: '👀' },
+    '데이터 없음': { cls: 'phase-none',  icon: '❔' },
+  };
+
+  function setDiagnosis(diag) {
+    const phase = (diag && diag.phase) || '데이터 없음';
+    const style = DIAGNOSIS_STYLE[phase] || DIAGNOSIS_STYLE['데이터 없음'];
+    const phaseEl = document.getElementById('diagnosis-phase');
+    if (phaseEl) {
+      phaseEl.className = 'diagnosis-badge ' + style.cls;
+      phaseEl.textContent = `${style.icon} ${phase}`;
+    }
+    const summaryEl = document.getElementById('diagnosis-summary');
+    if (summaryEl) {
+      const summary = diag && diag.summary;
+      summaryEl.textContent = summary || '진단 데이터가 아직 없습니다.';
+      summaryEl.className = 'diagnosis-summary' + (summary ? '' : ' neutral');
+    }
+  }
+
+  function setMacro(valId, interpId, entry, decimals = 2) {
+    const valEl = document.getElementById(valId);
+    const interpEl = document.getElementById(interpId);
+    const value = entry && entry.value;
+    if (value === null || value === undefined) {
+      if (valEl) valEl.textContent = '—';
+      if (interpEl) { interpEl.innerHTML = naCell('데이터 없음'); interpEl.className = 'macro-interp'; }
+      return;
+    }
+    if (valEl) valEl.textContent = fmt(value, decimals) + '%';
+    if (interpEl) { interpEl.textContent = entry.interpretation || '—'; interpEl.className = 'macro-interp'; }
+  }
+
   function render(d) {
     document.getElementById('updated-at').textContent = '업데이트: ' + (d.updated_at || '—');
+
+    setDiagnosis(d.market_diagnosis);
+
+    const macro = d.macro_indicators || {};
+    setMacro('macro-us-rate-val',   'macro-us-rate-interp',   macro.us_rate);
+    setMacro('macro-us-10y-val',    'macro-us-10y-interp',    macro.us_10y);
+    setMacro('macro-us-cpi-val',    'macro-us-cpi-interp',    macro.us_cpi_yoy);
+    setMacro('macro-us-unemp-val',  'macro-us-unemp-interp',  macro.us_unemployment);
+    setMacro('macro-kr-rate-val',   'macro-kr-rate-interp',   macro.kr_rate);
 
     const ex = d.exchange_rate || {};
     document.getElementById('ex-rate').textContent = ex.usd_krw !== null ? fmt(ex.usd_krw, 2) + '원' : '—';

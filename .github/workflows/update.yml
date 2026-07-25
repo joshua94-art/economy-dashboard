@@ -26,6 +26,8 @@ jobs:
         run: mkdir -p data data/reports data/kb_reports
 
       - name: 시장 데이터 수집
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: python scripts/fetch_data.py
 
       - name: AI 브리핑 생성
