@@ -35,10 +35,6 @@ from usage_log import record
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 REPORT_DIR = "data/reports"
-SECTORS = [
-    "반도체/AI", "배터리/EV", "바이오/제약", "자동차/모빌리티",
-    "에너지/소재", "금융/증권", "부동산/건설", "글로벌/경제", "정책/정치", "유통/소비",
-]
 
 _DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
 
@@ -243,8 +239,9 @@ def _repair_truncated_json(raw: str) -> str:
 
 def analyze(article_list: str, date_display: str) -> dict:
     """
-    압축된 기사 목록 → 섹터별 인과 흐름 서술 (Sonnet)
-    같은 섹터의 기사들을 '원인→전개→시사점' 구조로 하나의 스토리로 연결한다.
+    압축된 기사 목록 → 헤드라인 전수 나열 + 유동적 클러스터링 + 클러스터별 설명 (Sonnet)
+    고정 섹터가 아니라 그날 기사 내용에 따라 클러스터를 형성하고,
+    클러스터에 묶이지 않는 기사는 단독 기사로 남긴다.
     """
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -252,22 +249,25 @@ def analyze(article_list: str, date_display: str) -> dict:
         "role": "user",
         "content": (
             f"다음은 한국경제신문 {date_display}자 기사 목록입니다.\n\n"
-            "▶ 지침\n"
-            f"1. 섹터 목록 (각 기사를 1개에 배정):\n   {', '.join(SECTORS)}\n\n"
-            "2. 각 기사 필드:\n"
-            "   - title: 기사 제목 원문 그대로\n"
-            "   - key_sentence: 핵심 팩트 1개 (수치·고유명사 포함, 40자 이내, 명사형 종결)\n"
-            "     좋은 예) '삼성전자 2Q 영업이익 12조, 전년比 +60%'\n"
-            "     나쁜 예) '반도체 업황이 개선되고 있다고 한다'\n\n"
-            "3. 섹터별 'flow' 작성 (3~5문장):\n"
-            "   - 섹터 내 기사들의 인과관계·트렌드를 하나의 스토리로 연결\n"
-            "   - 구체적 기업명·수치·정책명을 언급하며\n"
-            "     'A가 → B로 이어지고 → C를 시사'하는 흐름 구조로\n"
-            "   - 단순 나열 금지. 기사들이 왜 함께 읽혀야 하는지 맥락 설명\n"
-            "   - 기사 1건이면 해당 사안의 배경·맥락·시사점 2~3문장\n\n"
-            "4. 기사 없는 섹터는 JSON에서 완전히 제외\n\n"
+            "▶ STEP A — 헤드라인 전수 나열\n"
+            "받은 기사 목록의 모든 제목을 누락 없이 그대로 나열하세요 (요약·분석·분류 없이).\n\n"
+            "▶ STEP B — 연결되는 것만 묶는 클러스터링\n"
+            "- 주제가 유사하거나 서로 영향을 주는 기사들만 묶으세요. 모든 기사를 억지로 묶지 마세요.\n"
+            "- 분류군은 고정 카테고리가 아니라 그날 기사 내용에 따라 유동적으로 형성하세요\n"
+            "  (예: '한국은행 금리인상', 'AI 인프라 수요' 등 그날그날 다른 이름).\n"
+            "- 핵심 클러스터는 최대 7개까지만 선정하세요 (그 이상 묶이면 관련성 높은 순으로 7개만 남기세요).\n"
+            "- 클러스터에 안 묶이는 기사는 '단독 기사' 목록으로 별도로 남기세요 (제목만).\n\n"
+            "▶ STEP C — 클러스터별 공부용 설명 (용어 설명은 제외)\n"
+            "- 각 클러스터마다 배경·인과관계·맥락을 풀어쓴 문단 (3~6문장)을 작성하세요.\n"
+            "- 기사 나열이 아니라 '왜 함께 읽혀야 하는지' 흐름으로 설명하세요.\n"
+            "- 구체적 기업명·수치·정책명을 언급하세요.\n"
+            "- 단정적 결론이나 투자 유도 표현은 쓰지 마세요.\n\n"
             "출력: JSON만 (마크다운 코드블록 없이)\n"
-            '형식: {"섹터명": {"flow": "...", "articles": [{"title": "...", "key_sentence": "..."}]}}\n\n'
+            "형식:\n"
+            '{"headlines": ["제목1", "제목2", ...], '
+            '"clusters": [{"title": "클러스터명", "articles": ["관련 제목1", "관련 제목2"], "explanation": "문단 설명..."}], '
+            '"standalone": ["단독 기사 제목1", "단독 기사 제목2"]}\n'
+            "clusters는 최대 7개.\n\n"
             f"[기사 목록]\n{article_list}"
         ),
     }]
@@ -279,9 +279,10 @@ def analyze(article_list: str, date_display: str) -> dict:
             system=[{
                 "type": "text",
                 "text": (
-                    "당신은 한국 경제 전문 에디터입니다. "
-                    "산업 섹터별로 기사를 분류하고, 같은 섹터 기사들이 "
-                    "어떤 인과 흐름으로 연결되는지 하나의 서사로 설명합니다."
+                    "당신은 신문을 해석해주는 사람이 아니라, 같이 읽고 이해를 돕는 공부 파트너입니다. "
+                    "논설위원처럼 단정하지 않고, 투자 판단을 유도하지 않습니다. "
+                    "의견을 제시할 때는 반드시 근거를 함께 제시하며 '이렇게 볼 수 있다' 수준으로만 말합니다. "
+                    "어투는 존댓말 대신 친근하지만 분석적인 톤으로 씁니다."
                 ),
                 "cache_control": {"type": "ephemeral"},
             }],
@@ -355,8 +356,8 @@ def process_date(service, date_str: str, pdfs: list[dict], generated_at: str) ->
         print(f"  [{date_display}] 기사 추출 실패. 건너뜀.")
         return False
 
-    print(f"  [2/2] 섹터 흐름 분석 중 (Sonnet)...")
-    sectors = analyze(article_list, date_display)
+    print(f"  [2/2] 클러스터 분석 중 (Sonnet)...")
+    result = analyze(article_list, date_display)
 
     os.makedirs(REPORT_DIR, exist_ok=True)
     report = {
@@ -365,7 +366,9 @@ def process_date(service, date_str: str, pdfs: list[dict], generated_at: str) ->
         "pdf_date": date_str,
         "pdf_count": len(pdfs),
         "is_fallback": False,
-        "sectors": sectors,
+        "headlines": result.get("headlines", []),
+        "clusters": result.get("clusters", []),
+        "standalone": result.get("standalone", []),
     }
     path = f"{REPORT_DIR}/{date_display}.json"
     with open(path, "w", encoding="utf-8") as f:

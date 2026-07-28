@@ -225,6 +225,59 @@
     .article-sep { color: var(--border); font-size: 0.78rem; flex-shrink: 0; }
     .article-key { font-size: 0.78rem; color: var(--text-sub); line-height: 1.55; }
 
+    /* ── 클러스터 형식 (신규) ── */
+    .cluster-section { margin-bottom: 10px; }
+    .cluster-heading {
+      font-size: 0.82rem; font-weight: 600; padding: 9px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px 6px 0 0; border-bottom: none;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
+    }
+    .cluster-heading:hover { background: var(--bg-card-hover); }
+    .cluster-count { font-size: 0.68rem; color: var(--text-sub); }
+    .cluster-content { border: 1px solid var(--border); border-radius: 0 0 6px 6px; overflow: hidden; }
+    .cluster-explanation {
+      padding: 12px 16px 14px; font-size: 0.82rem; line-height: 1.85;
+      background: linear-gradient(to right, rgba(9,105,218,0.07) 0%, rgba(9,105,218,0.02) 100%);
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--blue); color: var(--text); word-break: keep-all;
+    }
+    .cluster-articles-label {
+      padding: 6px 16px; font-size: 0.65rem; font-weight: 600;
+      color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+    }
+    .cluster-article {
+      padding: 9px 16px; border-bottom: 1px solid var(--border);
+      background: var(--bg-card); display: flex; gap: 8px; align-items: baseline;
+      transition: background 0.12s;
+    }
+    .cluster-article:last-child { border-bottom: none; }
+    .cluster-article:hover { background: var(--bg-card-hover); }
+
+    .standalone-section, .headlines-section { margin-bottom: 10px; }
+    .standalone-heading, .headlines-heading {
+      font-size: 0.82rem; font-weight: 600; padding: 9px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px 6px 0 0; border-bottom: none;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
+    }
+    .standalone-heading:hover, .headlines-heading:hover { background: var(--bg-card-hover); }
+    .standalone-count, .headlines-count { font-size: 0.68rem; color: var(--text-sub); }
+    .standalone-content, .headlines-content {
+      border: 1px solid var(--border); border-radius: 0 0 6px 6px; overflow: hidden;
+      background: var(--bg-card);
+    }
+    .standalone-list { list-style: none; margin: 0; padding: 0; }
+    .standalone-list li {
+      padding: 9px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.83rem; transition: background 0.12s;
+    }
+    .standalone-list li:last-child { border-bottom: none; }
+    .standalone-list li:hover { background: var(--bg-card-hover); }
+
     /* ── 구형 카테고리 형식 (하위호환) ── */
     .report-cat-section { margin-bottom: 12px; }
     .report-cat-heading {
@@ -884,8 +937,60 @@
     document.getElementById('report-meta').textContent =
       `생성: ${data.generated_at||data.date}  ·  PDF ${data.pdf_count||'?'}페이지${fallback}`;
     document.getElementById('report-updated-at').textContent = data.generated_at || '';
-    if (data.sectors) renderSectorReport(data);
+    if (data.clusters) renderClusterReport(data);
+    else if (data.sectors) renderSectorReport(data);
     else renderLegacyReport(data);
+  }
+
+  function renderClusterReport(data) {
+    document.getElementById('report-cat-tabs').innerHTML = '';
+    const bodyEl = document.getElementById('report-body');
+    const clusters = data.clusters || [];
+    const standalone = data.standalone || [];
+    const headlines = data.headlines || [];
+    if (!clusters.length && !standalone.length) {
+      bodyEl.innerHTML = '<div class="report-msg">분석 결과가 없습니다.</div>';
+      return;
+    }
+    const CIRCLED = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+    const clusterHtml = clusters.map(c => {
+      const articles = c.articles || [];
+      return `<div class="cluster-section">
+        <div class="cluster-heading" onclick="rToggle(this)">
+          <span>${esc(c.title||'')}</span>
+          <span class="cluster-count">${articles.length}건 ▾</span>
+        </div>
+        <div class="cluster-content">
+          ${c.explanation ? `<div class="cluster-explanation">${esc(c.explanation)}</div>` : ''}
+          ${articles.length ? `<div class="cluster-articles-label">관련 기사 ${articles.length}건</div>` : ''}
+          <div>${articles.map((title,i) => `
+            <div class="cluster-article">
+              <span class="article-num">${CIRCLED[i]||String(i+1)+'.'}</span>
+              <span class="article-title">${esc(title)}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    const standaloneHtml = standalone.length ? `<div class="standalone-section">
+      <div class="standalone-heading" onclick="rToggle(this)">
+        <span>단독 기사</span>
+        <span class="standalone-count">${standalone.length}건 ▾</span>
+      </div>
+      <div class="standalone-content">
+        <ul class="standalone-list">${standalone.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      </div>
+    </div>` : '';
+    const headlinesHtml = headlines.length ? `<div class="headlines-section">
+      <div class="headlines-heading" onclick="rToggle(this)">
+        <span>전체 헤드라인 보기</span>
+        <span class="headlines-count">${headlines.length}건 ▸</span>
+      </div>
+      <div class="headlines-content" style="display:none">
+        <ul class="standalone-list">${headlines.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      </div>
+    </div>` : '';
+    bodyEl.innerHTML = clusterHtml + standaloneHtml + headlinesHtml;
   }
 
   function renderSectorReport(data) {
@@ -959,7 +1064,9 @@
     const list = heading.nextElementSibling;
     const closing = list.style.display !== 'none';
     list.style.display = closing ? 'none' : '';
-    const cnt = heading.querySelector('.report-cat-count') || heading.querySelector('.sector-count');
+    const cnt = heading.querySelector('.report-cat-count') || heading.querySelector('.sector-count')
+      || heading.querySelector('.cluster-count') || heading.querySelector('.standalone-count')
+      || heading.querySelector('.headlines-count');
     if (cnt) cnt.textContent = cnt.textContent.replace(/[▾▸]/, closing?'▸':'▾');
   }
 
