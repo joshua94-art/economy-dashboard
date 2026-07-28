@@ -20,6 +20,9 @@ import io
 import json
 import os
 import re
+import subprocess
+import sys
+import tempfile
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -37,6 +40,10 @@ SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 REPORT_DIR = "data/reports"
 
 _DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
+
+# pdfplumber/pdfminer.six는 손상된 PDF에 대해 Python 예외 대신 세그폴트(SIGSEGV)를
+# 일으킬 수 있다. try/except로는 못 잡으므로 별도 프로세스에서 추출을 실행해 격리한다.
+_PDF_EXTRACT_WORKER_FLAG = "--pdf-extract-worker"
 
 
 # ── Google Drive 유틸 ──────────────────────────────────────────────────────────
@@ -132,6 +139,57 @@ def extract_text(pdf_bytes: bytes, filename: str) -> str:
     return "\n\n".join(parts)
 
 
+def _extract_text_worker_main(pdf_path: str, out_path: str, filename: str) -> None:
+    """서브프로세스 진입점: PDF 1개를 추출해 out_path에 텍스트로 기록한다."""
+    with open(pdf_path, "rb") as f:
+        pdf_bytes = f.read()
+    text = extract_text(pdf_bytes, filename)
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(text)
+
+
+def extract_text_isolated(pdf_bytes: bytes, filename: str) -> str:
+    """
+    extract_text()를 별도 프로세스에서 실행해 세그폴트로부터 격리한다.
+    손상된 PDF가 pdfminer.six 내부에서 네이티브 크래시를 일으켜도
+    이 자식 프로세스만 죽고, 부모는 returncode로 감지해 다음 PDF로 넘어간다.
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pdf_path = os.path.join(tmp_dir, "input.pdf")
+        out_path = os.path.join(tmp_dir, "output.txt")
+        with open(pdf_path, "wb") as f:
+            f.write(pdf_bytes)
+
+        print(f"    추출 시작: {filename}", flush=True)
+        try:
+            result = subprocess.run(
+                [sys.executable, __file__, _PDF_EXTRACT_WORKER_FLAG, pdf_path, out_path, filename],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+        except subprocess.TimeoutExpired:
+            print(f"    [오류] {filename}: 추출 타임아웃(120초) — 건너뜀", flush=True)
+            return ""
+
+        if result.returncode != 0:
+            if result.returncode < 0:
+                print(f"    [오류] {filename}: 시그널 {-result.returncode}로 추출 프로세스 종료 "
+                      f"(세그폴트 등 네이티브 크래시로 추정) — 건너뜀", flush=True)
+            else:
+                print(f"    [오류] {filename}: 추출 프로세스 실패 (exit={result.returncode}) — 건너뜀", flush=True)
+            if result.stderr:
+                print(f"      stderr: {result.stderr.strip()[:500]}", flush=True)
+            return ""
+
+        if not os.path.exists(out_path):
+            print(f"    [오류] {filename}: 출력 파일이 생성되지 않음 — 건너뜀", flush=True)
+            return ""
+
+        with open(out_path, encoding="utf-8") as f:
+            return f.read()
+
+
 # ── 1단계: PDF별 기사 추출 (Haiku, 병렬) ─────────────────────────────────────
 
 def _extract_articles_from_text(text: str, filename: str) -> str:
@@ -168,14 +226,15 @@ def extract_all_articles(service, pdfs: list[dict]) -> str:
     """
     def process_one(item: dict) -> tuple[str, str]:
         try:
+            print(f"    다운로드 시작: {item['name']}", flush=True)
             data = download_file(service, item["id"])
-            text = extract_text(data, item["name"])
+            text = extract_text_isolated(data, item["name"])
             if not text.strip():
                 return "", item["name"]
             articles = _extract_articles_from_text(text, item["name"])
             return articles, item["name"]
         except Exception as e:
-            print(f"    오류({item['name']}): {e}")
+            print(f"    오류({item['name']}): {e}", flush=True)
             return "", item["name"]
 
     # 병렬 실행 (최대 3 동시: Anthropic rate limit 고려)
@@ -442,4 +501,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == _PDF_EXTRACT_WORKER_FLAG:
+        _extract_text_worker_main(sys.argv[2], sys.argv[3], sys.argv[4])
+    else:
+        main()
