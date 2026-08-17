@@ -421,6 +421,24 @@
       .kb-concept-ctx { grid-template-columns: 1fr; }
     }
 
+    /* ── 경제 뉴스 ── */
+    .news-list { display: flex; flex-direction: column; gap: 10px; }
+    .news-card {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer;
+    }
+    .news-card-date { font-family: 'JetBrains Mono', monospace; font-size: 0.86rem; font-weight: 600; }
+    .news-card-arrow { color: var(--text-sub); font-size: 0.9rem; }
+    .news-back-btn { margin-bottom: 14px; }
+    .news-detail-title { font-size: 1.15rem; margin-bottom: 6px; }
+    .news-detail-date { font-size: 0.76rem; color: var(--text-sub); margin-bottom: 18px; }
+    .news-content { font-size: 0.86rem; line-height: 1.9; color: var(--text); word-break: keep-all; }
+    .news-content h1, .news-content h2, .news-content h3 { margin: 18px 0 10px; font-weight: 700; }
+    .news-content h1 { font-size: 1.05rem; }
+    .news-content h2 { font-size: 0.98rem; }
+    .news-content h3 { font-size: 0.9rem; }
+    .news-content p { margin-bottom: 12px; }
+
     /* ── 반응형 ── */
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2,1fr); }
@@ -442,6 +460,7 @@
 <nav class="tab-nav">
   <div class="tab-nav-inner">
     <button class="tab-btn active" onclick="switchTab('dashboard')">📊 메인 대시보드</button>
+    <button class="tab-btn" onclick="switchTab('economy_news')">📰 경제 뉴스</button>
     <!-- 한경 뉴스 탭 숨김 처리 (scripts/fetch_hankyung.py 및 관련 코드는 보존) -->
     <!-- <button class="tab-btn" onclick="switchTab('hankyung')">📰 한경 뉴스</button> -->
     <!-- 경제 공부(KB 리포트) 탭 숨김 처리 (scripts/fetch_kb_report.py 및 관련 코드는 보존) -->
@@ -663,6 +682,27 @@
   </div>
 </div>
 
+<!-- 탭: 경제 뉴스 -->
+<div id="tab-economy_news" class="content" style="display:none">
+  <header>
+    <h1>📰 경제 뉴스</h1>
+    <span class="updated-at" id="news-updated-at"></span>
+  </header>
+
+  <div id="news-list-view">
+    <div id="news-list" class="news-list"></div>
+  </div>
+
+  <div id="news-detail-view" style="display:none">
+    <button class="report-trend-btn news-back-btn" onclick="showNewsList()">← 목록으로</button>
+    <div class="card">
+      <h1 class="news-detail-title" id="news-detail-title"></h1>
+      <div class="news-detail-date" id="news-detail-date"></div>
+      <div class="news-content" id="news-detail-content"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 탭: 블로그 글 -->
 <div id="tab-blog" class="content" style="display:none">
   <header><h1>✍️ 블로그 글</h1></header>
@@ -689,7 +729,7 @@
 <script>
   // ── 탭 전환 ────────────────────────────────────────────
   // 'hankyung', 'study' 탭은 네비게이션에서 숨김 처리됨 (버튼 순서와 매핑되어야 하므로 배열에서 제외)
-  const TABS = ['dashboard','blog'];
+  const TABS = ['dashboard','economy_news','blog'];
   function switchTab(tab) {
     TABS.forEach(t => {
       document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
@@ -1243,6 +1283,91 @@
   }
 
   // loadKbIndex();  // 경제 공부(KB 리포트) 섹션 숨김 처리로 fetch 비활성화 (함수는 보존)
+
+  // ── 경제 뉴스 ────────────────────────────────────────────
+  const NEWS_CACHE = {};
+
+  function renderMarkdown(text) {
+    const lines = esc(text || '').split('\n');
+    let html = '';
+    let para = [];
+    const flush = () => {
+      if (para.length) { html += `<p>${para.join('<br>')}</p>`; para = []; }
+    };
+    for (const line of lines) {
+      const h = line.match(/^(#{1,3})\s+(.*)$/);
+      if (h) {
+        flush();
+        const level = h[1].length;
+        html += `<h${level}>${h[2]}</h${level}>`;
+      } else if (line.trim() === '') {
+        flush();
+      } else {
+        para.push(line);
+      }
+    }
+    flush();
+    return html;
+  }
+
+  async function loadNewsIndex() {
+    const listEl = document.getElementById('news-list');
+    try {
+      const res = await fetch(`data/economy_news/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const dates = (idx.dates || []).slice().sort().reverse();
+      if (!dates.length) {
+        listEl.innerHTML = '<div class="report-msg">아직 등록된 경제 뉴스가 없습니다.</div>';
+        document.getElementById('news-updated-at').textContent = '';
+        return;
+      }
+      document.getElementById('news-updated-at').textContent = `총 ${dates.length}건`;
+      listEl.innerHTML = dates.map(d => `
+        <div class="card news-card" onclick="showNewsDetail('${d}')">
+          <span class="news-card-date">${d}</span>
+          <span class="news-card-arrow">›</span>
+        </div>
+      `).join('');
+    } catch {
+      listEl.innerHTML = '<div class="report-msg">경제 뉴스 목록을 불러올 수 없습니다.</div>';
+    }
+  }
+
+  async function showNewsDetail(date) {
+    document.getElementById('news-list-view').style.display = 'none';
+    document.getElementById('news-detail-view').style.display = '';
+    const titleEl = document.getElementById('news-detail-title');
+    const dateEl = document.getElementById('news-detail-date');
+    const contentEl = document.getElementById('news-detail-content');
+    titleEl.textContent = '로딩 중...';
+    dateEl.textContent = '';
+    contentEl.innerHTML = '';
+
+    if (NEWS_CACHE[date]) { renderNewsDetail(NEWS_CACHE[date]); return; }
+    try {
+      const res = await fetch(`data/economy_news/${date}.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      NEWS_CACHE[date] = await res.json();
+      renderNewsDetail(NEWS_CACHE[date]);
+    } catch {
+      titleEl.textContent = '불러올 수 없습니다';
+      contentEl.innerHTML = `<div class="report-msg">${date} 경제 뉴스를 불러올 수 없습니다.</div>`;
+    }
+  }
+
+  function renderNewsDetail(d) {
+    document.getElementById('news-detail-title').textContent = d.title || d.date;
+    document.getElementById('news-detail-date').textContent = d.date || '';
+    document.getElementById('news-detail-content').innerHTML = renderMarkdown(d.content || '');
+  }
+
+  function showNewsList() {
+    document.getElementById('news-detail-view').style.display = 'none';
+    document.getElementById('news-list-view').style.display = '';
+  }
+
+  loadNewsIndex();
 </script>
 </body>
 </html>
