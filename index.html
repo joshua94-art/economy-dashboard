@@ -453,6 +453,10 @@
       padding: 10px 4px; border-bottom: 1px solid var(--border);
     }
     .vocab-word-item:last-child { border-bottom: none; }
+    .vocab-num {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+      color: var(--text-sub); flex-shrink: 0;
+    }
     .vocab-word {
       font-weight: 700; font-family: 'JetBrains Mono', monospace;
       font-size: 0.86rem; color: var(--blue); flex-shrink: 0;
@@ -1608,8 +1612,9 @@
       titleEl.textContent = d.title || d.date;
       dateEl.textContent = `${d.date || ''} · 단어 ${vocab.length}개`;
       listEl.innerHTML = vocab.length
-        ? vocab.map(v => `
+        ? vocab.map((v, i) => `
             <li class="vocab-word-item">
+              <span class="vocab-num">${i + 1}.</span>
               <span class="vocab-word">${esc(v.word || '')}</span>
               <span class="vocab-meaning">${esc(v.meaning || '')}</span>
             </li>
