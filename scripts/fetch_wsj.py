@@ -143,37 +143,6 @@ def update_index(date_display: str) -> None:
     save_index(idx)
 
 
-# ── 제목/본문 분리 ───────────────────────────────────────────────────────────────
-
-def split_title_and_content(text: str, filename: str) -> tuple[str | None, str]:
-    """
-    첫 non-empty 줄을 제목으로 분리하고, 나머지를 본문으로 반환한다.
-    제목 뒤에 이어지는 빈 줄들은 최대 1개로 정리한다.
-    전체가 공백뿐이면 (None, "") 반환.
-    """
-    lines = text.splitlines()
-
-    title_idx = None
-    for i, line in enumerate(lines):
-        if line.strip():
-            title_idx = i
-            break
-    if title_idx is None:
-        return None, ""
-
-    title = lines[title_idx].strip()
-    rest = lines[title_idx + 1:]
-
-    j = 0
-    while j < len(rest) and not rest[j].strip():
-        j += 1
-    if j > 0:
-        rest = [""] + rest[j:]
-
-    content = "\n".join(rest)
-    return title, content
-
-
 # ── 클러스터/단어 파싱 ───────────────────────────────────────────────────────────
 
 def parse_sections(content: str) -> tuple[list[dict], list[dict], int]:
@@ -241,12 +210,15 @@ def process_file(service, date_display: str, file: dict) -> tuple[bool, int]:
     # Windows에서 작성된 UTF-8 BOM 텍스트도 처리
     raw_text = raw.decode("utf-8-sig", errors="replace")
 
-    title, content = split_title_and_content(raw_text, file["name"])
-    if title is None:
+    if not raw_text.strip():
         print(f"  [{date_display}] 내용이 비어 있습니다. 건너뜀.")
         return False, 0
 
-    sections, vocab, skipped = parse_sections(content)
+    # WSJ 파일은 첫 줄부터 "📰 클러스터 1. ..."로 시작하는 구조라
+    # 첫 줄을 title로 떼어내면 클러스터 1이 통째로 유실된다.
+    # title은 파일명 기반으로 생성하고, 원문 전체를 그대로 파싱에 넘긴다.
+    title = os.path.splitext(file["name"])[0]
+    sections, vocab, skipped = parse_sections(raw_text)
     if not sections:
         print(f"  [경고] [{date_display}] '📰 클러스터' 패턴을 찾을 수 없습니다. 건너뜀.")
         return False, 0
