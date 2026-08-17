@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 데이터 디렉토리 생성
-        run: mkdir -p data data/reports data/kb_reports
+        run: mkdir -p data data/reports data/kb_reports data/economy_news
 
       - name: 시장 데이터 수집
         env:
@@ -68,6 +68,6 @@ jobs:
 
       - name: 변경사항 커밋 및 푸시
         run: |
-          git add data/market_data.json data/reports/ data/kb_reports/ data/usage_log.jsonl
+          git add data/market_data.json data/reports/ data/kb_reports/ data/economy_news/ data/usage_log.jsonl
           git diff --staged --quiet || git commit -m "📊 데이터 업데이트: $(TZ='Asia/Seoul' date +'%Y-%m-%d %H:%M KST')"
           git push
