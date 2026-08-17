@@ -442,8 +442,10 @@
 <nav class="tab-nav">
   <div class="tab-nav-inner">
     <button class="tab-btn active" onclick="switchTab('dashboard')">📊 메인 대시보드</button>
-    <button class="tab-btn" onclick="switchTab('hankyung')">📰 한경 뉴스</button>
-    <button class="tab-btn" onclick="switchTab('study')">📚 경제 공부</button>
+    <!-- 한경 뉴스 탭 숨김 처리 (scripts/fetch_hankyung.py 및 관련 코드는 보존) -->
+    <!-- <button class="tab-btn" onclick="switchTab('hankyung')">📰 한경 뉴스</button> -->
+    <!-- 경제 공부(KB 리포트) 탭 숨김 처리 (scripts/fetch_kb_report.py 및 관련 코드는 보존) -->
+    <!-- <button class="tab-btn" onclick="switchTab('study')">📚 경제 공부</button> -->
     <button class="tab-btn" onclick="switchTab('blog')">✍️ 블로그 글</button>
   </div>
 </nav>
@@ -686,7 +688,8 @@
 
 <script>
   // ── 탭 전환 ────────────────────────────────────────────
-  const TABS = ['dashboard','hankyung','study','blog'];
+  // 'hankyung', 'study' 탭은 네비게이션에서 숨김 처리됨 (버튼 순서와 매핑되어야 하므로 배열에서 제외)
+  const TABS = ['dashboard','blog'];
   function switchTab(tab) {
     TABS.forEach(t => {
       document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
@@ -1101,7 +1104,7 @@
 
   document.addEventListener('keydown', e => { if (e.key==='Escape') closeTrend(); });
 
-  loadReportIndex();
+  // loadReportIndex();  // 한경 뉴스 섹션 숨김 처리로 fetch 비활성화 (함수는 보존)
 
   // ── KB 리포트 경제 공부 ────────────────────────────────────
   const KB_CACHE = {};
@@ -1239,7 +1242,7 @@
     heading.querySelector('.kb-concept-toggle').textContent = opening ? '▴ 접기' : '▾ 펼치기';
   }
 
-  loadKbIndex();
+  // loadKbIndex();  // 경제 공부(KB 리포트) 섹션 숨김 처리로 fetch 비활성화 (함수는 보존)
 </script>
 </body>
 </html>

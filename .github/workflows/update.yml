@@ -36,6 +36,7 @@ jobs:
         run: python scripts/generate_comments.py
 
       - name: 한경 뉴스 리포트 생성
+        if: false   # 자동분석 파이프라인 비활성화 (코드/스크립트는 보존)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
@@ -43,6 +44,7 @@ jobs:
         continue-on-error: true   # PDF 없는 날(주말·공휴일)에도 워크플로우 중단 방지
 
       - name: KB 리포트 경제 공부 분석
+        if: false   # 자동분석 파이프라인 비활성화 (코드/스크립트는 보존)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
