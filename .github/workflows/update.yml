@@ -51,6 +51,12 @@ jobs:
         run: python scripts/fetch_kb_report.py
         continue-on-error: true   # PDF 없는 날에도 워크플로우 중단 방지
 
+      - name: "[TEST] 경제뉴스 스크립트 테스트"
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python scripts/fetch_economy_news.py
+        continue-on-error: true
+
       - name: Git 설정
         run: |
           git config user.name "github-actions[bot]"
