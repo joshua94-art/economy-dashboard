@@ -447,6 +447,17 @@
       font-size: 0.82rem; line-height: 1.7; color: var(--text);
     }
     .news-part-list li::before { content: '•'; position: absolute; left: 0; color: var(--blue); }
+    .vocab-word-list { list-style: none; margin: 0; padding: 0; max-height: 70vh; overflow-y: auto; }
+    .vocab-word-item {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+      padding: 10px 4px; border-bottom: 1px solid var(--border);
+    }
+    .vocab-word-item:last-child { border-bottom: none; }
+    .vocab-word {
+      font-weight: 700; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.86rem; color: var(--blue); flex-shrink: 0;
+    }
+    .vocab-meaning { font-size: 0.82rem; color: var(--text); line-height: 1.6; }
 
     /* ── 반응형 ── */
     @media (max-width: 900px) {
@@ -470,6 +481,8 @@
   <div class="tab-nav-inner">
     <button class="tab-btn active" onclick="switchTab('dashboard')">📊 메인 대시보드</button>
     <button class="tab-btn" onclick="switchTab('economy_news')">📰 경제 뉴스</button>
+    <button class="tab-btn" onclick="switchTab('wsj')">🌐 WSJ</button>
+    <button class="tab-btn" onclick="switchTab('vocab')">📖 영어 단어</button>
     <!-- 한경 뉴스 탭 숨김 처리 (scripts/fetch_hankyung.py 및 관련 코드는 보존) -->
     <!-- <button class="tab-btn" onclick="switchTab('hankyung')">📰 한경 뉴스</button> -->
     <!-- 경제 공부(KB 리포트) 탭 숨김 처리 (scripts/fetch_kb_report.py 및 관련 코드는 보존) -->
@@ -712,6 +725,45 @@
   </div>
 </div>
 
+<!-- 탭: WSJ -->
+<div id="tab-wsj" class="content" style="display:none">
+  <header>
+    <h1>🌐 WSJ</h1>
+    <span class="updated-at" id="wsj-updated-at"></span>
+  </header>
+
+  <div id="wsj-list-view">
+    <div id="wsj-list" class="news-list"></div>
+  </div>
+
+  <div id="wsj-detail-view" style="display:none">
+    <button class="report-trend-btn news-back-btn" onclick="showWsjList()">← 목록으로</button>
+    <h1 class="news-detail-title" id="wsj-detail-title"></h1>
+    <div class="news-sections" id="wsj-detail-sections"></div>
+  </div>
+</div>
+
+<!-- 탭: 영어 단어 -->
+<div id="tab-vocab" class="content" style="display:none">
+  <header>
+    <h1>📖 영어 단어</h1>
+    <span class="updated-at" id="vocab-updated-at"></span>
+  </header>
+
+  <div id="vocab-list-view">
+    <div id="vocab-list" class="news-list"></div>
+  </div>
+
+  <div id="vocab-detail-view" style="display:none">
+    <button class="report-trend-btn news-back-btn" onclick="showVocabList()">← 목록으로</button>
+    <div class="card">
+      <h1 class="news-detail-title" id="vocab-detail-title"></h1>
+      <div class="news-detail-date" id="vocab-detail-date"></div>
+      <ul class="vocab-word-list" id="vocab-detail-list"></ul>
+    </div>
+  </div>
+</div>
+
 <!-- 탭: 블로그 글 -->
 <div id="tab-blog" class="content" style="display:none">
   <header><h1>✍️ 블로그 글</h1></header>
@@ -738,7 +790,7 @@
 <script>
   // ── 탭 전환 ────────────────────────────────────────────
   // 'hankyung', 'study' 탭은 네비게이션에서 숨김 처리됨 (버튼 순서와 매핑되어야 하므로 배열에서 제외)
-  const TABS = ['dashboard','economy_news','blog'];
+  const TABS = ['dashboard','economy_news','wsj','vocab','blog'];
   function switchTab(tab) {
     TABS.forEach(t => {
       document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
@@ -1454,6 +1506,128 @@
   }
 
   loadNewsIndex();
+
+  // ── WSJ / 영어 단어 (data/wsj/ 공유) ──────────────────────
+  const WSJ_CACHE = {};
+
+  async function fetchWsjDate(date) {
+    if (WSJ_CACHE[date]) return WSJ_CACHE[date];
+    const res = await fetch(`data/wsj/${date}.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error();
+    WSJ_CACHE[date] = await res.json();
+    return WSJ_CACHE[date];
+  }
+
+  async function loadWsjIndex() {
+    const listEl = document.getElementById('wsj-list');
+    try {
+      const res = await fetch(`data/wsj/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const dates = (idx.dates || []).slice().sort().reverse();
+      if (!dates.length) {
+        listEl.innerHTML = '<div class="report-msg">아직 등록된 WSJ 리포트가 없습니다.</div>';
+        document.getElementById('wsj-updated-at').textContent = '';
+        return;
+      }
+      document.getElementById('wsj-updated-at').textContent = `총 ${dates.length}건`;
+      listEl.innerHTML = dates.map(d => `
+        <div class="card news-card" onclick="showWsjDetail('${d}')">
+          <span class="news-card-date">${d}</span>
+          <span class="news-card-arrow">›</span>
+        </div>
+      `).join('');
+    } catch {
+      listEl.innerHTML = '<div class="report-msg">목록을 불러올 수 없습니다.</div>';
+    }
+  }
+
+  async function showWsjDetail(date) {
+    document.getElementById('wsj-list-view').style.display = 'none';
+    document.getElementById('wsj-detail-view').style.display = '';
+    const titleEl = document.getElementById('wsj-detail-title');
+    const sectionsEl = document.getElementById('wsj-detail-sections');
+    titleEl.textContent = '로딩 중...';
+    sectionsEl.innerHTML = '';
+    try {
+      const d = await fetchWsjDate(date);
+      titleEl.textContent = d.title || d.date;
+      sectionsEl.innerHTML = (d.sections || []).map(s => `
+        <div class="card news-section-card">
+          <div class="news-section-title">${esc(s.title || '')}</div>
+          <div class="news-content">${renderMarkdown(s.body || '')}</div>
+        </div>
+      `).join('');
+    } catch {
+      titleEl.textContent = '불러올 수 없습니다';
+      sectionsEl.innerHTML = `<div class="report-msg">${date} WSJ 리포트를 불러올 수 없습니다.</div>`;
+    }
+  }
+
+  function showWsjList() {
+    document.getElementById('wsj-detail-view').style.display = 'none';
+    document.getElementById('wsj-list-view').style.display = '';
+  }
+
+  async function loadVocabIndex() {
+    const listEl = document.getElementById('vocab-list');
+    try {
+      const res = await fetch(`data/wsj/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const dates = (idx.dates || []).slice().sort().reverse();
+      if (!dates.length) {
+        listEl.innerHTML = '<div class="report-msg">아직 등록된 영어 단어가 없습니다.</div>';
+        document.getElementById('vocab-updated-at').textContent = '';
+        return;
+      }
+      document.getElementById('vocab-updated-at').textContent = `총 ${dates.length}건`;
+      listEl.innerHTML = dates.map(d => `
+        <div class="card news-card" onclick="showVocabDetail('${d}')">
+          <span class="news-card-date">${d}</span>
+          <span class="news-card-arrow">›</span>
+        </div>
+      `).join('');
+    } catch {
+      listEl.innerHTML = '<div class="report-msg">목록을 불러올 수 없습니다.</div>';
+    }
+  }
+
+  async function showVocabDetail(date) {
+    document.getElementById('vocab-list-view').style.display = 'none';
+    document.getElementById('vocab-detail-view').style.display = '';
+    const titleEl = document.getElementById('vocab-detail-title');
+    const dateEl = document.getElementById('vocab-detail-date');
+    const listEl = document.getElementById('vocab-detail-list');
+    titleEl.textContent = '로딩 중...';
+    dateEl.textContent = '';
+    listEl.innerHTML = '';
+    try {
+      const d = await fetchWsjDate(date);
+      const vocab = d.vocab || [];
+      titleEl.textContent = d.title || d.date;
+      dateEl.textContent = `${d.date || ''} · 단어 ${vocab.length}개`;
+      listEl.innerHTML = vocab.length
+        ? vocab.map(v => `
+            <li class="vocab-word-item">
+              <span class="vocab-word">${esc(v.word || '')}</span>
+              <span class="vocab-meaning">${esc(v.meaning || '')}</span>
+            </li>
+          `).join('')
+        : '<div class="report-msg">등록된 단어가 없습니다.</div>';
+    } catch {
+      titleEl.textContent = '불러올 수 없습니다';
+      listEl.innerHTML = `<div class="report-msg">${date} 영어 단어를 불러올 수 없습니다.</div>`;
+    }
+  }
+
+  function showVocabList() {
+    document.getElementById('vocab-detail-view').style.display = 'none';
+    document.getElementById('vocab-list-view').style.display = '';
+  }
+
+  loadWsjIndex();
+  loadVocabIndex();
 </script>
 </body>
 </html>
