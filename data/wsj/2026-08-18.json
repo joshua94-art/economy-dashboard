@@ -1,0 +1,420 @@
+{
+  "date": "2026-08-18",
+  "title": "2026년 8월 18일 월스트리트저널",
+  "sections": [
+    {
+      "title": "클러스터 1. 이란-오만-후티-가자 — 중동 전선이 동시다발로 열리는 중",
+      "body": "관련 기사: Frustrated Over War, Trump Threatens Ally Oman / Iran's Secret Plan To Escalate War / Houthis Boost Red Sea Attacks / U.S. Is Pressing Israel to Stop Strikes in Gaza\r\n\r\n트럼프 vs 오만 — 동맹국인데 왜 폭격 위협?\r\n이란과의 전쟁이 거의 9개월째 안 끝나니까 트럼프가 답답함을 오만에다 풀고 있어. 폭스뉴스 인터뷰에서 \"오만이 이런 식이면 그 [빌어먹을 것]을 폭격하겠다\"는 취지로 말했는데, 배경은 이래 — 오만은 원래 미국-이란 사이 중재자 역할(카타르·파키스탄과 함께)을 해왔는데, 이번엔 이란 쪽으로 너무 기운 협상안을 들고 와서 백악관이 격분한 상황. 백악관 내부에서도 \"오만을 어떻게 다룰지\"를 놓고 논쟁이 벌어지고 있다는 게 기사의 핵심 포인트야. 트럼프 논리는 \"우리가 3만9천 명 병력으로 한국(오만 아님, 문맥상 걸프 지역)을 지켜주고 있는데 도움을 안 준다\"는 불만.\r\n\r\n이란의 '살라미 전술' — 확전 준비론\r\n동시에 이란 내부에서는 강경파가 주도권을 잡고 전선을 넓히려는 움직임이 포착되고 있어. 이라크·예멘(후티)·레바논(헤즈볼라) 같은 대리세력들과의 통신을 아랍 정보당국이 감청했는데, \"salami-slicing\"(살라미 썰기 — 한 번에 크게 안 하고 조금씩 야금야금 확전하는 전술) 방식으로 미국·이스라엘에 대응 강도를 높이고 있다는 분석. 혁명수비대는 걸프 산유국(쿠웨이트 등)에 정보망을 심고, 해저 인터넷 케이블 파괴 같은 옵션까지 검토 중이래. 새로 임명된 모센 레자에이(최고안보회의 사무총장)는 \"적에 대한 강력한 공세 작전\"을 지시받았다는 게 상징적.\r\n\r\n후티 — 홍해 봉쇄 강화\r\n예멘의 이란 동맹 세력 후티가 홍해 쪽 항구(모카)를 공격해서 폐쇄시켰어. 바브엘만데브 해협은 호르무즈 해협과 함께 세계 에너지 수송의 핵심 병목인데, 여기마저 막히면 이란의 호르무즈 봉쇄에 이어 '이중 봉쇄' 상황이 되는 거지. 전문가는 \"2020년 이후 가장 심각한 확전 국면일 수 있다\"고 경고해.\r\n\r\n가자 — 그나마 진전 신호\r\n반대로 가자에서는 커슈너(트럼프 사위)가 네타냐후와 만나 \"하마스 무장해제 계획\"을 다시 살리려는 움직임이 있어. 이스라엘이 병력을 재배치 안 하는 조건으로 하마스가 무기를 넘기면, 60~90일 내에 하마스가 힘을 완전히 잃을 거라는 게 미국 측 계산.\r\n\r\n네 기사를 묶어보면: 미국이 이란·오만·후티·가자 네 방향에서 동시에 압박을 받고 있고, \"어디서 먼저 터지느냐\"의 문제로 보이는 그림이야."
+    },
+    {
+      "title": "클러스터 2. 상황인식(Situational Awareness) 헤지펀드 붕괴 — AI 버블 경고음",
+      "body": "관련 기사: Six Crucial Days on Wall Street Brought Hedge Fund to Brink / What Took Hedge Fund To the Brink\r\n\r\n핵심 인물 — 레오폴드 아셴브레너\r\n이 기사는 지난 세션에 나왔던 인물(전 OpenAI 직원, 2024년 \"Situational Awareness\" 에세이로 유명해진 20대 AI 헤지펀드 매니저)이 어떻게 자기 펀드를 거의 파산 직전까지 몰고 갔는지를 재구성한 심층 기사야. 그는 AI 발전을 예언하듯 맞춰서 \"AI 노스트라다무스\"라는 별명까지 얻었고, 한때 관리자산이 $45billion(투자자 자본 기준으로도 상당한 규모)까지 커졌었어. 근데 문제는 그 자본을 레버리지 써서 반도체·데이터센터 관련주에 집중 베팅했다는 거지(\"Texas hedge\"라고 불리는, 한 테마에 몰빵하는 전략).\r\n\r\n붕괴 트리거 — 7월 마지막 주\r\n7월 29일 수요일, 데이비드 만(투자자문사 CEO)이 공항에서 뉴스를 듣고 상황을 파악했어 — Situational Awareness가 \"디레버리징(deleveraging)\" 중이라는 소문이 월가에 퍼지고 있었던 거야. 알고 보니 은행들(JP모건, BofA, 씨티)이 오래전부터 대출을 대주고 있었는데, 아셴브레너가 은행별로 얼마씩 빌렸는지 교차 확인하는 걸 꺼려하는 게 처음엔 \"레드플래그\"로 여겨졌었대. 시투에이셔널이 보유한 AI 관련주(넥서스, 블룸에너지, 샌디스크 등)가 일제히 폭락하면서 마진콜이 쏟아졌고, 반도체지수(Sandisk, Nebius 등)가 하루이틀 새 -20~24%까지 떨어졌어.\r\n\r\nAnthropic 지분 매각 — 은행권까지 흔들\r\n가장 흥미로운 대목은 시투에이셔널이 Anthropic(=Claude 만든 회사) 지분을 상당량 들고 있었는데, 이걸 급매하려던 움직임이 시장에 \"레드플래그\"로 읽히면서 은행들의 AI 관련주 전반에 대한 신뢰가 흔들렸다는 거야. Anthropic 자체도 이 매각 승인 절차에 개입했고(\"어떤 지분이든 매각하려면 회사 승인 필요\"라는 조항), 결국 기존 주주(Citadel의 켄 그리핀 등)에게 할인된 가격(10% 할인)으로 넘기는 딜이 급하게 성사됐어. 시투에이셔널은 결국 이번 달 순자산의 67%를 잃었다고.\r\n\r\n훈훈한(?) 결말\r\n그런데 위기의 한복판이던 그 주말, 아셴브레너는 Anthropic 창업자 다리오 아모데이의 수석보좌관 아비탈 발윗과 칼멜에서 조촐하게 결혼식을 올렸대. 켄 그리핀과 시타델이 \"그날을 가능하게 해줘서 고맙다\"는 농담 섞인 축사가 나왔다는 후일담도 함께 실려 있어.\r\n\r\n이 사건이 시사하는 건 — AI 붐이 만들어낸 밸류에이션이 얼마나 빠르게, 그리고 얼마나 연쇄적으로 무너질 수 있는지를 보여주는 실제 사례라는 점이야 (다만 시사점을 단정 짓기보다는 \"이런 일이 있었다\" 정도로만 정리할게)."
+    },
+    {
+      "title": "클러스터 3. 루이지 만조니 — 주(州) 재판 지연",
+      "body": "관련 기사: State Trial Delayed For Mangione\r\n\r\n지난 세션에서 다뤘던 연방 스토킹 혐의 유죄인정 이후 후속 소식이야. 뉴욕주 살인죄 재판이 원래 9월 8일 배심원 선정으로 시작할 예정이었는데, 이게 연기됐어. 이유는 만조니 측 변호인단이 \"동일 혐의로 두 번 기소하는 건 부당하다(impermissible second prosecution)\"며 주 재판 자체를 기각시키려는 시도를 하고 있어서 절차가 꼬인 거지. 연방 사건에서 지난주 유죄를 인정한 게 오히려 주 재판 절차를 복잡하게 만든 셈이야. 판사는 12월 18일로 연방 선고를 확정했고, 주 재판 일정은 다시 잡힐 예정."
+    },
+    {
+      "title": "클러스터 4. 헌터 바이든 — \"짐을 내려놓은\" 전 대통령 아들의 전방위 발언",
+      "body": "관련 기사: Hunter Biden Is Seemingly Everywhere\r\n\r\n바이든 전 대통령 아들 헌터가 최근 팟캐스트·서브스택(Substack)·인터뷰를 통해 거침없이 발언을 쏟아내고 있다는 내용이야. 닉 퓨언테스(극우 논객) 같은 인물과도 어울리고, 전 법무장관 메릭 갈런드를 조롱하고, 심지어 \"아버지 조 바이든의 건강 상태가 대중이 아는 것보다 나쁘다\"는 취지의 말까지 흘렸어. 캘리포니아 주지사 개빈 뉴섬 같은 정치인, 러셀 브랜드(제작자) 같은 인물과도 인터뷰를 했고.\r\n\r\n핵심은 \"unburdened\"(짐을 내려놓은)라는 단어로 요약돼 — 조 바이든이 부통령 시절 즐겨 쓰던 표현을 헌터가 이제 자기 자신에게 쓰고 있는 거지. 백악관 재직 시절엔 헌터 이름조차 언급 금지였고, 아버지 지지율에 해가 될까봐 보좌진이 조심스러워했는데, 이제는 그런 제약이 없어졌으니 마약 중독 경험, 이스라엘 정치인 비판, 심지어 트럼프 자녀들 이야기까지 자유롭게 하고 있어. 자기 서브스택 구독자가 6만5천 명 넘는다는 것도 흥미로운 디테일 — 유료 구독료가 월 $10~750까지 다양하다고."
+    },
+    {
+      "title": "클러스터 5. 미국 국내정치 — 총기권리 회복 & 아이오와 중간선거 전초전 & 이민 정책 여파",
+      "body": "관련 기사: U.S. Lets Felons Reclaim Rights To Guns / GOP Candidates on Defense in Iowa / Loss of TPS Hits Hiring In Florida\r\n\r\n중범죄자 총기권리 회복\r\n법무장관 토드 블랜치가 새 규정을 발표했어 — 중범죄 전과로 총기 소유권을 잃은 사람들이 다시 권리를 신청할 수 있게 하는 절차야. 약 3300만 명 정도가 대상이 될 수 있고, 첫 해에만 33만 명이 신청할 걸로 예상돼. \"수정헌법 2조는 이등시민을 위한 권리가 아니다\"라는 블랜치의 발언이 핵심 논리. 다만 폭력범죄·가정폭력·불법체류자 등은 여전히 제외.\r\n\r\n아이오와 — 공화당의 텃밭이 흔들리는 중\r\n2024년 트럼프가 13%p 차이로 이긴 아이오와인데, 지금은 오히려 경합주가 됐다는 게 이 기사의 핵심이야. 공화당 주지사 후보 잭 란(Zach Lahn)이 민주당 주(州)회계감사관 롭 샌드에게 여론조사에서 계속 밀리고 있고, 공화당 후보들이 아예 트럼프 이름을 언급하는 걸 꺼리는 분위기래(\"Mum on president\"). 이유는 이란전쟁으로 인한 유가·경제 불안, 관세로 인한 농산물 가격 타격이 농업주 아이오와에 직격탄이 됐기 때문. 흥미로운 건 무당파 유권자가 55만9천 명으로 공화당(71만2천)·민주당(52만9천) 사이에서 캐스팅보트를 쥐고 있다는 점.\r\n\r\n플로리다 — TPS 종료로 고용시장 타격 (연결)\r\n이건 지난 세션 이후 후속 상황인데, 아이티 TPS(임시보호신분) 종료로 플로리다주 노동시장이 흔들리고 있다는 내용이 이번 호에도 이어져 실렸어. 플로리다에만 아이티 TPS 소지자 35만 명 중 절반 가까이(약 16만 명)가 거주하고, 그중 9만3천 명이 실제 노동인구라는 통계가 나와. 요양시설·식당·건설업 쪽에서 특히 인력난이 심하다고.\r\n\r\n세 기사를 묶어 보면: 트럼프 행정부의 국내 정책(총기 완화, 이민 강경책)이 실행되는 동시에, 그 정책의 반작용(이란전쟁 여파, 이민자 인력 공백)이 공화당 텃밭인 아이오와·플로리다 같은 지역에서 정치적 역풍으로 돌아오고 있다는 그림이야."
+    },
+    {
+      "title": "클러스터 6. 세계뉴스 묶음 — 트럼프의 김정은 구애, 케임브리지 스캔들, 중국·캐나다 경제지표",
+      "body": "관련 기사: Trump Tries Old Ploy to Woo Kim Jong Un / Cambridge Professor's Death Sparks U.K. Soul-Searching / China's Economy Weakened In July / Canada Inflation Heats Up to 3%\r\n\r\n김정은 구애 — 한미 훈련 축소 카드\r\n트럼프가 2018년 첫 임기 때 썼던 전략을 다시 꺼냈어 — 북한과의 관계 개선을 위해 한미 연합훈련 규모를 줄이라고 지시한 거지. 문제는 그때와 상황이 완전히 다르다는 점 — 북한은 그동안 러시아·중국의 도움으로 핵무기와 미사일 기술을 대폭 발전시켰고, 우크라이나전에 파병까지 하면서 실전 경험도 쌓았어. 그런데도 트럼프는 김정은과 찍은 2019년 판문점 사진을 SNS에 올리며 \"다시 만나자\"는 신호를 보내는 중. 전직 해군 제독은 \"2018년에도 실수였는데 지금은 훨씬 더 큰 실수\"라고 비판.\r\n\r\n케임브리지 교수 사망 사건 — DEI 논쟁으로 번진 비극\r\n자폐가 있던 케임브리지대 최연소 흑인 교수 제이슨 아르디가 표절·이력 허위 기재 의혹으로 조사받다가 스스로 목숨을 끊은 사건이야. 그의 죽음이 \"다양성 채용(DEI)이 오히려 검증을 소홀히 하게 만든 것 아니냐\"는 논쟁에 불을 붙였어. 대학 측은 반박하지만, 언론과 대중의 공세가 과했다는 반성론도 함께 나오는 복잡한 사건.\r\n\r\n⚠️ 이 부분은 자살(사망) 관련 내용을 포함하고 있어. 혹시 이 주제가 개인적으로 힘들게 느껴진다면 언제든 말해줘, 필요한 도움을 찾을 수 있게 도와줄게.\r\n\r\n중국·캐나다 — 엇갈리는 경제 신호\r\n중국은 7월 경제지표가 전반적으로 둔화됐어 — 소매판매 0.6%(전년비, 전월 대비 둔화), 부동산 투자는 19% 급감, 실업률은 5.2%로 상승. 반면 수출은 견조해서(24% 증가) \"이중속도 경제(two-speed economy)\"라는 표현이 나와 — 첨단기술·수출은 강한데 내수·부동산은 약한 상황. 캐나다는 반대로 인플레이션이 예상보다 높게 나와서(연율 3%) 캐나다은행이 금리 인하를 늦출 가능성이 커졌어."
+    },
+    {
+      "title": "클러스터 7. Personal Journal 잡다한 트렌드 — Gen Z 인턴, 유럽 약국, 미스터리 여행",
+      "body": "관련 기사: Gen Z-E-O: This Summer, Interns Are Running the Show / Women Flock to European Pharmacies / Rolling the Dice on 'Mystery Vacations' / BofA CEO Plays Secret Word Game\r\n\r\n이 넷은 서로 직접 연관은 없지만 \"라이프스타일·소비 트렌드\" 지면으로 가볍게 묶었어.\r\n\r\nAI가 인턴들의 잡무(커피 타기, 전화받기 같은)를 대체하면서, 오히려 살아남은 인턴들은 훨씬 더 큰 프로젝트를 맡게 됐다는 역설적인 이야기(Gen Z-E-O)\r\n유럽 스킨케어·약국 제품이 SNS에서 뜨면서 미국인들이 일부러 유럽 여행 가서 약국 쇼핑을 하는 트렌드(유럽은 화장품 규제가 미국보다 엄격해서 신뢰도가 높다는 인식)\r\n목적지를 모르고 예약하는 \"미스터리 여행\" 상품(그루폰 등)이 유행하는 현상 — 여행비 급등 + 도박성 심리가 결합된 트렌드\r\nBofA CEO 브라이언 모이니한이 실적발표 콜마다 일부러 고어체 단어(\"gainsay\", \"concomitant\" 등)를 섞어 쓰는 습관이 월가 애널리스트들 사이에서 일종의 놀이가 됐다는 가십성 기사"
+    }
+  ],
+  "vocab": [
+    {
+      "word": "flummox",
+      "meaning": "당황하게 하다, 어리둥절하게 만들다"
+    },
+    {
+      "word": "boon",
+      "meaning": "(누군가에게) 큰 혜택, 도움"
+    },
+    {
+      "word": "bravado",
+      "meaning": "허세"
+    },
+    {
+      "word": "overriding",
+      "meaning": "무엇보다 중요한, 최우선의"
+    },
+    {
+      "word": "sabotage",
+      "meaning": "파괴 공작을 벌이다"
+    },
+    {
+      "word": "flashpoint",
+      "meaning": "(분쟁 등이) 촉발되는 지점"
+    },
+    {
+      "word": "chokepoint",
+      "meaning": "병목 지점, 요충지"
+    },
+    {
+      "word": "rerouted",
+      "meaning": "우회된"
+    },
+    {
+      "word": "disrupt",
+      "meaning": "방해하다, 지장을 주다"
+    },
+    {
+      "word": "unravel",
+      "meaning": "(합의·상황이) 풀리다, 와해되다"
+    },
+    {
+      "word": "deployment",
+      "meaning": "배치"
+    },
+    {
+      "word": "disarmament",
+      "meaning": "무장해제"
+    },
+    {
+      "word": "decommission",
+      "meaning": "(무기를) 폐기하다"
+    },
+    {
+      "word": "reconstitute",
+      "meaning": "재편성하다"
+    },
+    {
+      "word": "suppression",
+      "meaning": "진압, 억압"
+    },
+    {
+      "word": "crackdown",
+      "meaning": "단속, 탄압"
+    },
+    {
+      "word": "stalemate",
+      "meaning": "교착상태"
+    },
+    {
+      "word": "generational",
+      "meaning": "세대에 걸친 (여기선 \"세대를 아우르는 복수심\"의 맥락)"
+    },
+    {
+      "word": "deleveraging",
+      "meaning": "부채 축소, 레버리지 청산"
+    },
+    {
+      "word": "soothsayer",
+      "meaning": "예언자, 점쟁이"
+    },
+    {
+      "word": "unshakable",
+      "meaning": "흔들리지 않는"
+    },
+    {
+      "word": "red flag",
+      "meaning": "위험 신호"
+    },
+    {
+      "word": "margin call",
+      "meaning": "마진콜 (추가 증거금 요구)"
+    },
+    {
+      "word": "collateral",
+      "meaning": "담보"
+    },
+    {
+      "word": "brokerage",
+      "meaning": "중개업(체)"
+    },
+    {
+      "word": "prime brokerage",
+      "meaning": "프라임 브로커리지 (헤지펀드 대상 종합 금융서비스)"
+    },
+    {
+      "word": "aggregate",
+      "meaning": "총계, 합계"
+    },
+    {
+      "word": "outsize",
+      "meaning": "과도한, 지나치게 큰"
+    },
+    {
+      "word": "unwind (동사)",
+      "meaning": "(포지션·투자 등을) 청산하다"
+    },
+    {
+      "word": "implosion",
+      "meaning": "내파, (내부로부터의) 붕괴"
+    },
+    {
+      "word": "flummoxed",
+      "meaning": "당황한"
+    },
+    {
+      "word": "pedigree",
+      "meaning": "혈통, (여기선) 경력·이력"
+    },
+    {
+      "word": "shore up",
+      "meaning": "(재정 등을) 떠받치다, 강화하다"
+    },
+    {
+      "word": "desperate",
+      "meaning": "절박한"
+    },
+    {
+      "word": "scramble (동사)",
+      "meaning": "허둥지둥 움직이다"
+    },
+    {
+      "word": "avalanche",
+      "meaning": "눈사태, (비유) 걷잡을 수 없는 사태"
+    },
+    {
+      "word": "flummox",
+      "meaning": "당황시키다"
+    },
+    {
+      "word": "degross",
+      "meaning": "(금융) 리스크 익스포저를 줄이다"
+    },
+    {
+      "word": "upend",
+      "meaning": "뒤엎다"
+    },
+    {
+      "word": "impermissible",
+      "meaning": "허용되지 않는"
+    },
+    {
+      "word": "jury selection",
+      "meaning": "배심원 선정"
+    },
+    {
+      "word": "proceeding",
+      "meaning": "(법적) 절차"
+    },
+    {
+      "word": "sentencing",
+      "meaning": "선고"
+    },
+    {
+      "word": "unburdened",
+      "meaning": "짐을 내려놓은, 홀가분한"
+    },
+    {
+      "word": "foul-mouthed",
+      "meaning": "입이 거친, 욕설을 잘 하는"
+    },
+    {
+      "word": "ubiquitous",
+      "meaning": "어디에나 있는, 편재하는"
+    },
+    {
+      "word": "unravel",
+      "meaning": "(스캔들 등이) 풀려나오다"
+    },
+    {
+      "word": "interlocutor",
+      "meaning": "대화 상대"
+    },
+    {
+      "word": "prostate cancer",
+      "meaning": "전립선암"
+    },
+    {
+      "word": "debilitating",
+      "meaning": "쇠약하게 만드는"
+    },
+    {
+      "word": "torch (동사, 비유)",
+      "meaning": "(책임 등을) 넘기다 (\"pass the torch\")"
+    },
+    {
+      "word": "ridiculed",
+      "meaning": "조롱당한"
+    },
+    {
+      "word": "acquaintance",
+      "meaning": "지인"
+    },
+    {
+      "word": "self-disclosed",
+      "meaning": "스스로 밝힌"
+    },
+    {
+      "word": "rant",
+      "meaning": "격한 비난, 장광설"
+    },
+    {
+      "word": "cut clips",
+      "meaning": "(인터뷰 등에서) 짧게 잘린 클립"
+    },
+    {
+      "word": "felon / felony",
+      "meaning": "중범죄자 / 중범죄"
+    },
+    {
+      "word": "reinstate",
+      "meaning": "(권리 등을) 복권시키다, 회복시키다"
+    },
+    {
+      "word": "extravaganza",
+      "meaning": "성대한 행사, 축제"
+    },
+    {
+      "word": "unfamiliar",
+      "meaning": "낯선, 익숙하지 않은"
+    },
+    {
+      "word": "soapbox",
+      "meaning": "(즉석) 연단, 정치적 발언대"
+    },
+    {
+      "word": "disillusioned",
+      "meaning": "환멸을 느낀"
+    },
+    {
+      "word": "independents",
+      "meaning": "무당파 유권자"
+    },
+    {
+      "word": "overrepresented",
+      "meaning": "과다 대표된"
+    },
+    {
+      "word": "reclaim",
+      "meaning": "(권리 등을) 되찾다"
+    },
+    {
+      "word": "crackdown",
+      "meaning": "단속"
+    },
+    {
+      "word": "overtime",
+      "meaning": "초과근무"
+    },
+    {
+      "word": "ploy",
+      "meaning": "계략, 술책"
+    },
+    {
+      "word": "overstretched",
+      "meaning": "지나치게 확장된, 과부하 걸린"
+    },
+    {
+      "word": "credential",
+      "meaning": "자격, 이력"
+    },
+    {
+      "word": "fabricate",
+      "meaning": "(이야기·이력을) 지어내다, 조작하다"
+    },
+    {
+      "word": "lightning rod",
+      "meaning": "(비난의) 표적, 피뢰침"
+    },
+    {
+      "word": "backlash",
+      "meaning": "반발, 역풍"
+    },
+    {
+      "word": "trailblazer",
+      "meaning": "선구자"
+    },
+    {
+      "word": "underscore",
+      "meaning": "강조하다, 부각시키다"
+    },
+    {
+      "word": "muted",
+      "meaning": "약화된, 억제된"
+    },
+    {
+      "word": "tick",
+      "meaning": "(수치가) 소폭 변동하다"
+    },
+    {
+      "word": "tailwind",
+      "meaning": "순풍, 유리하게 작용하는 요인"
+    },
+    {
+      "word": "heightened",
+      "meaning": "고조된"
+    },
+    {
+      "word": "ideological",
+      "meaning": "이념적인"
+    },
+    {
+      "word": "menial",
+      "meaning": "(일이) 하찮은, 잡무의"
+    },
+    {
+      "word": "pipeline (비유)",
+      "meaning": "(인재 등의) 공급망"
+    },
+    {
+      "word": "shoulder (동사)",
+      "meaning": "(책임을) 짊어지다"
+    },
+    {
+      "word": "standout",
+      "meaning": "두드러진 사람/것"
+    },
+    {
+      "word": "flock (동사)",
+      "meaning": "떼지어 모이다"
+    },
+    {
+      "word": "extol",
+      "meaning": "극찬하다"
+    },
+    {
+      "word": "stringent",
+      "meaning": "엄격한"
+    },
+    {
+      "word": "happenstance",
+      "meaning": "우연"
+    },
+    {
+      "word": "archaic",
+      "meaning": "고어의, 옛스러운"
+    },
+    {
+      "word": "lexicon",
+      "meaning": "어휘, 용어집"
+    },
+    {
+      "word": "perspicacious",
+      "meaning": "통찰력 있는"
+    },
+    {
+      "word": "fructify",
+      "meaning": "결실을 맺다"
+    },
+    {
+      "word": "infructuous",
+      "meaning": "(드문 단어) 결실 없는"
+    },
+    {
+      "word": "windfall",
+      "meaning": "뜻밖의 횡재"
+    },
+    {
+      "word": "axiomatic",
+      "meaning": "자명한"
+    },
+    {
+      "word": "redound",
+      "meaning": "(결과가) ~로 돌아가다, 이바지하다"
+    }
+  ]
+}
