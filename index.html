@@ -36,7 +36,14 @@
       border-bottom: 1px solid var(--border);
       padding: 0 24px;
     }
-    .tab-nav-inner { display: flex; }
+    .tab-nav-inner {
+      display: flex; flex-wrap: nowrap;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .tab-nav-inner::-webkit-scrollbar { height: 4px; }
+    .tab-nav-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .tab-nav-inner::-webkit-scrollbar-track { background: transparent; }
     .tab-btn {
       padding: 13px 18px;
       background: none; border: none;
@@ -46,6 +53,7 @@
       cursor: pointer; font-family: inherit;
       transition: color 0.15s, border-color 0.15s;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .tab-btn:hover { color: var(--text); }
     .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
@@ -471,7 +479,8 @@
     }
     @media (max-width: 600px) {
       .content { padding: 14px 16px; }
-      .grid-2,.grid-3,.grid-4,.grid-5 { grid-template-columns: 1fr 1fr; }
+      .grid-2,.grid-4 { grid-template-columns: 1fr 1fr; }
+      .grid-3,.grid-5 { grid-template-columns: 1fr; }
       .exchange-value { font-size: 1.55rem; }
       .exchange-card { flex-direction: column; gap: 10px; align-items: flex-start; }
       .tab-btn { padding: 12px 12px; font-size: 0.78rem; }
