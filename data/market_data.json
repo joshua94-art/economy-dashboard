@@ -1,66 +1,66 @@
 {
-  "updated_at": "2026-09-08 06:16 KST",
+  "updated_at": "2026-09-21 00:25 KST",
   "exchange_rate": {
-    "usd_krw": 1344.84,
-    "change": -10.5701,
-    "change_pct": -0.7798
+    "usd_krw": 1385.95,
+    "change": 6.4199,
+    "change_pct": 0.4654
   },
   "indices": {
     "sp500": {
-      "value": 7718.6001,
-      "change": -29.1099,
-      "change_pct": -0.3757
+      "value": 7650.5,
+      "change": 12.7402,
+      "change_pct": 0.1668
     },
     "nasdaq": {
-      "value": 26506.9902,
-      "change": -77.0703,
-      "change_pct": -0.2899
+      "value": 26522.5391,
+      "change": 104.2383,
+      "change_pct": 0.3946
     },
     "dow": {
-      "value": 53414.25,
-      "change": -271.8594,
-      "change_pct": -0.5064
+      "value": 51682.6406,
+      "change": -95.3984,
+      "change_pct": -0.1842
     },
     "kospi": {
-      "value": 6687.21,
-      "change": 107.73,
-      "change_pct": 1.6374
+      "value": 6894.23,
+      "change": 178.8198,
+      "change_pct": 2.6628
     },
     "kosdaq": {
-      "value": 813.5,
-      "change": 23.29,
-      "change_pct": 2.9473
+      "value": 827.12,
+      "change": 4.94,
+      "change_pct": 0.6008
     }
   },
   "commodities": {
     "gold": {
-      "price": 4476.6001,
-      "change": 46.8003,
-      "change_pct": 1.0565
+      "price": 4424.8999,
+      "change": 25.1997,
+      "change_pct": 0.5728
     },
     "silver": {
-      "price": 66.748,
-      "change": 0.701,
-      "change_pct": 1.0614
+      "price": 67.149,
+      "change": 1.679,
+      "change_pct": 2.5645
     },
     "crude_oil": {
-      "price": 91.48,
-      "change": 0.0,
-      "change_pct": 0.0
+      "price": 96.08,
+      "change": -5.83,
+      "change_pct": -5.7207
     },
     "natural_gas": {
-      "price": 2.975,
-      "change": 0.0,
-      "change_pct": 0.0
+      "price": 2.912,
+      "change": 0.011,
+      "change_pct": 0.3792
     }
   },
   "vix": {
-    "value": 15.3,
-    "change": 0.77,
-    "change_pct": 5.2994
+    "value": 14.81,
+    "change": -0.63,
+    "change_pct": -4.0803
   },
   "fear_greed": {
-    "value": 84,
+    "value": 86,
     "label": "극도의 탐욕"
   },
   "portfolio": [
@@ -68,134 +68,134 @@
       "ticker": "010140.KS",
       "name": "삼성중공업",
       "currency": "KRW",
-      "price": 21400.0,
-      "change": 0.0,
-      "change_pct": 0.0,
+      "price": 20800.0,
+      "change": -700.0,
+      "change_pct": -3.2558,
       "shares": 165,
       "avg_price": 30156,
-      "value": 3531000.0,
-      "pl": -1444740.0,
-      "pl_pct": -29.0357
+      "value": 3432000.0,
+      "pl": -1543740.0,
+      "pl_pct": -31.0253
     },
     {
       "ticker": "189300.KS",
       "name": "인텔리안테크",
       "currency": "KRW",
-      "price": 63500.0,
-      "change": 400.0,
-      "change_pct": 0.6339,
+      "price": 68100.0,
+      "change": -1200.0,
+      "change_pct": -1.7316,
       "shares": 25,
       "avg_price": 168500,
-      "value": 1587500.0,
-      "pl": -2625000.0,
-      "pl_pct": -62.3145
+      "value": 1702500.0,
+      "pl": -2510000.0,
+      "pl_pct": -59.5846
     },
     {
       "ticker": "107640.KS",
       "name": "한중엔시에스",
       "currency": "KRW",
-      "price": 40500.0,
-      "change": 700.0,
-      "change_pct": 1.7588,
+      "price": null,
+      "change": null,
+      "change_pct": null,
       "shares": 68,
       "avg_price": 58800,
-      "value": 2754000.0,
-      "pl": -1244400.0,
-      "pl_pct": -31.1224
+      "value": 0,
+      "pl": 0,
+      "pl_pct": 0
     },
     {
       "ticker": "171090.KS",
       "name": "선익시스템",
       "currency": "KRW",
-      "price": 68600.0,
-      "change": 1400.0,
-      "change_pct": 2.0833,
+      "price": 72100.0,
+      "change": 800.0,
+      "change_pct": 1.122,
       "shares": 45,
       "avg_price": 91000,
-      "value": 3087000.0,
-      "pl": -1008000.0,
-      "pl_pct": -24.6154
+      "value": 3244500.0,
+      "pl": -850500.0,
+      "pl_pct": -20.7692
     },
     {
       "ticker": "000720.KS",
       "name": "현대건설",
       "currency": "KRW",
-      "price": 126900.0,
-      "change": 7200.0,
-      "change_pct": 6.015,
+      "price": 124800.0,
+      "change": -500.0,
+      "change_pct": -0.399,
       "shares": 25,
       "avg_price": 160800,
-      "value": 3172500.0,
-      "pl": -847500.0,
-      "pl_pct": -21.0821
+      "value": 3120000.0,
+      "pl": -900000.0,
+      "pl_pct": -22.3881
     },
     {
       "ticker": "0004G0.KS",
       "name": "1Q 미국배당TOP30",
       "currency": "KRW",
-      "price": 8820.0,
-      "change": -150.0,
-      "change_pct": -1.6722,
+      "price": 8810.0,
+      "change": -20.0,
+      "change_pct": -0.2265,
       "shares": 63,
       "avg_price": 9385,
-      "value": 555660.0,
-      "pl": -35595.0,
-      "pl_pct": -6.0202
+      "value": 555030.0,
+      "pl": -36225.0,
+      "pl_pct": -6.1268
     },
     {
       "ticker": "458730.KS",
       "name": "TIGER 미국배당다우존스",
       "currency": "KRW",
-      "price": 14680.0,
-      "change": -285.0,
-      "change_pct": -1.9044,
+      "price": 14815.0,
+      "change": -20.0,
+      "change_pct": -0.1348,
       "shares": 52,
       "avg_price": 15198,
-      "value": 763360.0,
-      "pl": -26936.0,
-      "pl_pct": -3.4083
+      "value": 770380.0,
+      "pl": -19916.0,
+      "pl_pct": -2.5201
     },
     {
       "ticker": "SPYM",
       "name": "SPDR Portfolio S&P 500",
       "currency": "USD",
-      "price": 90.67,
-      "change": -0.34,
-      "change_pct": -0.3736,
+      "price": 89.64,
+      "change": 0.09,
+      "change_pct": 0.1005,
       "shares": 17,
       "avg_price": 82.66,
-      "value": 1541.39,
-      "pl": 136.17,
-      "pl_pct": 9.6903
+      "value": 1523.88,
+      "pl": 118.66,
+      "pl_pct": 8.4442
     },
     {
       "ticker": "QBTS",
       "name": "디웨이브퀀텀",
       "currency": "USD",
-      "price": 16.58,
-      "change": -0.24,
-      "change_pct": -1.4269,
+      "price": 17.11,
+      "change": -0.58,
+      "change_pct": -3.2787,
       "shares": 65,
       "avg_price": 29.9,
-      "value": 1077.7,
-      "pl": -865.8,
-      "pl_pct": -44.5485
+      "value": 1112.15,
+      "pl": -831.35,
+      "pl_pct": -42.7759
     }
   ],
   "macro_indicators": {
     "us_rate": {
-      "value": 3.75,
-      "prev": 3.75,
+      "value": 4.0,
+      "prev": 4.0,
       "interpretation": "중립 수준"
     },
     "us_10y": {
-      "value": 4.77,
-      "prev": 4.79,
+      "value": 4.94,
+      "prev": 5.01,
       "interpretation": "장기 금리 부담 구간"
     },
     "us_cpi_yoy": {
-      "value": 3.54,
-      "prev": 3.73,
+      "value": 3.71,
+      "prev": 3.54,
       "interpretation": "목표(2%) 상회, 인플레 압력 존재"
     },
     "us_unemployment": {
@@ -206,16 +206,16 @@
     "kr_rate": {
       "value": 2.75,
       "effective_date": "2026-07-16",
-      "interpretation": "한미 금리차 1.00%p, 역전 구간"
+      "interpretation": "한미 금리차 1.25%p, 역전 구간"
     }
   },
   "market_diagnosis": {
     "phase": "긴축 국면",
-    "summary": "현재는 긴축 국면 구간입니다. 미국 기준금리 3.75%, 한국 기준금리 2.75%로 금리차 1.00%p이며, CPI는 3.54%로 목표(2%) 상회, 인플레 압력 존재 상태입니다."
+    "summary": "현재는 긴축 국면 구간입니다. 미국 기준금리 4.00%, 한국 기준금리 2.75%로 금리차 1.25%p이며, CPI는 3.71%로 목표(2%) 상회, 인플레 압력 존재 상태입니다."
   },
-  "briefing": "9월 8일 아침 시장 브리핑입니다.\n\n국내 증시는 KOSPI·KOSDAQ 동반 강세로 활기를 띤 반면, 미국 시장은 소폭 조정을 받으며 엇갈린 흐름을 보였습니다. 원/달러 환율이 1,344.84원으로 0.78% 하락(원화 강세)한 점은 외국인 수급 측면에서 국내 증시에 우호적 요인으로 작용할 수 있습니다.\n\n금과 은이 각각 1.06% 동반 상승하며 4,476달러·66.75달러를 기록했고, WTI 원유는 91.48달러로 강보합권을 유지했습니다. 귀금속 강세는 인플레이션 헤지 수요 혹은 달러 약세 흐름과 맥을 같이하는 신호로 읽힙니다.\n\n주목할 리스크는 공포탐욕 지수 84의 극도의 탐욕 구간입니다. 과열 심리가 지속되면 단기 조정 빌미가 될 수 있으며, 특히 미국 배당 ETF 등 달러 자산 비중 보유자는 환율 변동성을 면밀히 점검할 필요가 있습니다. 오늘은 국내 중소형주 모멘텀 지속 여부와 미국 추가 지표 발표에 따른 방향성 확인이 핵심입니다.",
+  "briefing": "9월 21일 아침 시장 브리핑입니다. 가장 눈에 띄는 변수는 WTI 원유의 급락(-5.72%)으로, 글로벌 수요 둔화 우려 혹은 공급 증가 신호가 원자재 시장에 충격을 주고 있습니다. 반면 금(+0.57%)과 은(+2.56%)은 동반 강세를 보이며 안전자산·귀금속 선호 심리가 혼재하고 있습니다. 원/달러 환율은 1,386원대로 올라서며 원화 약세가 진행 중이고, 이는 수출주에 우호적이나 수입 원자재 비용 부담 요인으로도 작용합니다. VIX는 14.81로 안정적이나 공포탐욕 지수가 86 '극도의 탐욕' 구간에 위치해 시장 과열 경고등이 켜진 상태입니다. KOSPI의 큰 폭 상승에도 포트폴리오 내 삼성중공업·인텔리안테크 등 개별 종목 부진이 지속되고 있어, 지수보다 종목 선별 전략이 더욱 중요한 시점입니다.",
   "section_comments": {
-    "kr_indices": "KOSPI와 KOSDAQ이 각각 1.64%, 2.95%의 강세를 보이며 국내 증시가 뚜렷한 상승세를 나타냈다. 특히 KOSDAQ의 급등이 두드러지며 중소형·성장주 중심의 매수세가 집중된 양상으로, 현대건설(+6.01%), 선익시스템(+2.08%), 한중엔시에스(+1.76%) 등 포트폴리오 내 종목들도 대체로 동반 상승하며 국내 시장의 온기를 확인했다.",
-    "us_indices": "미국 3대 지수는 일제히 소폭 하락하며 숨 고르기 장세를 연출했다. 다우존스(-0.51%)가 상대적으로 낙폭이 컸고 나스닥(-0.29%)은 방어적인 흐름을 보였는데, 공포탐욕 지수가 84(극도의 탐욕)에 달한 과열 심리 속에서 차익 실현 매물이 유입된 것으로 풀이된다. VIX가 15.3으로 안정적인 수준을 유지하고 있어 급격한 변동보다는 완만한 조정 국면이 이어질 가능성이 높다."
+    "kr_indices": "KOSPI가 2.66% 급등하며 6,894선을 돌파하는 강한 상승세를 보였습니다. 다만 개별 종목 수준에서는 삼성중공업·인텔리안테크 등 주요 보유 종목들이 하락하며 지수 상승과 체감 온도가 엇갈리는 양상입니다. KOSDAQ은 0.60% 오르며 동반 상승했으나 대형주 중심의 지수 랠리 특성이 뚜렷하게 나타났습니다.",
+    "us_indices": "나스닥이 0.39% 상승하며 기술주 중심의 강세 흐름을 이어간 반면, 다우존스는 소폭 하락하며 업종 간 온도 차가 확인됩니다. S&P500은 7,650선에서 완만하게 우상향하며 공포탐욕 지수 86(극도의 탐욕) 수준의 과열 심리를 반영하고 있어, 단기 조정 가능성을 염두에 두어야 할 국면입니다."
   }
 }
