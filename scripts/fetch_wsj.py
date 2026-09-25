@@ -11,9 +11,9 @@ Claude API를 호출하지 않습니다 — 순수 텍스트 처리이므로 비
 정규식 (\\d{4})년\\s*(\\d{1,2})월\\s*(\\d{1,2})일 로 날짜(YYYY-MM-DD)를 추출합니다.
 
 원문 구조:
-- "📰 클러스터 N. 제목" 또는 "그룹 N. 제목" (이모지 유무 무관)으로 시작하는
-  섹션이 여러 개 나열됨
-- 각 섹션 본문 뒤에 "📖 영어 단어" 라벨과 "word — 뜻" 형식의 줄들이 이어짐
+- "클러스터 N. 제목" 또는 "그룹 N. 제목"으로 시작하는 섹션이 여러 개 나열됨
+  (앞머리 이모지·기호는 무엇이든 무관: 📰, 📌, ## 등. 구분자는 . : ) ] 허용)
+- 각 섹션 본문 뒤에 "영어 단어" 라벨(이모지 무관)과 "word — 뜻" 형식의 줄들이 이어짐
   (다음 섹션 시작 줄이 나오기 전까지)
 
 사전 준비: fetch_hankyung.py와 동일 (서비스 계정 + GOOGLE_CREDENTIALS 시크릿).
@@ -35,8 +35,14 @@ _DRIVE_PARAMS = dict(includeItemsFromAllDrives=True, supportsAllDrives=True)
 
 _DATE_PATTERN = re.compile(r"(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일")
 
-_SECTION_PATTERN = re.compile(r"^(?:📰\s*)?((?:클러스터|그룹)\s*\d+\.\s*.+)$")
-_VOCAB_LABEL = "📖 영어 단어"
+# 앞머리(이모지·숫자 이모지·기호·마크다운·목록 기호 등, 한글/영문 글자만 아니면)는 무시하고
+# "클러스터 N." 부분만 본다. 문장 중간의 "… 클러스터 1." 은 앞에 글자가 있어 제외된다.
+#   "📰 클러스터 1. 제목" / "📌 클러스터 1. 제목" / "## 클러스터 1: 제목" / "[그룹 2] 제목" 모두 인식
+# 본문 속 "- 클러스터 1. 에서 본 것처럼" 같은 언급은 번호가 앞 클러스터보다 커야 한다는
+# 조건(parse_sections)으로 걸러낸다.
+_SECTION_PATTERN = re.compile(r"^[^가-힣A-Za-z]*?(클러스터|그룹)\s*(\d+)\s*[.:)\]]\s*(.+)$")
+# "📖 영어 단어" 라벨도 앞머리·뒤 기호와 무관하게 인식 ("📚 영어 단어:", "영어 단어" 등)
+_VOCAB_LABEL = re.compile(r"^\W*영어\s*단어\W*$")
 # "word — 뜻" / "word – 뜻" / "word - 뜻" 모두 허용 (대시 앞뒤에 공백 필수 —
 # 단어 내부 하이픈(cost-effective 등)과 구분하기 위함)
 _VOCAB_LINE = re.compile(r"^(.+?)\s+[—–-]\s+(.+)$")
@@ -127,10 +133,11 @@ def save_index(idx: dict) -> None:
 
 
 def get_existing_dates() -> set[str]:
-    """이미 처리된 날짜를 YYYYMMDD 형식의 집합으로 반환."""
+    """이미 처리된 날짜를 YYYYMMDD 형식의 집합으로 반환.
+    index.json 의 "skipped" 에 적힌 날짜(수집하지 않기로 한 날짜)도 처리된 것으로 본다."""
     idx = load_index()
     result = set()
-    for d in idx.get("dates", []):
+    for d in idx.get("dates", []) + idx.get("skipped", []):
         result.add(d.replace("-", ""))
     return result
 
@@ -157,10 +164,18 @@ def parse_sections(content: str) -> tuple[list[dict], list[dict], int]:
     lines = content.split("\n")
 
     boundaries: list[tuple[int, str]] = []
+    last_num = 0
     for i, line in enumerate(lines):
         m = _SECTION_PATTERN.match(line.strip())
-        if m:
-            boundaries.append((i, m.group(1).strip()))
+        if not m:
+            continue
+        kind, num, rest = m.group(1), int(m.group(2)), m.group(3).strip().strip("*#").strip()
+        # 번호가 앞 클러스터보다 커야 새 섹션으로 본다 (본문 속 "클러스터 1." 언급 제외)
+        if num <= last_num:
+            continue
+        last_num = num
+        # 제목 표기를 "클러스터 N. 제목" 으로 통일 (앞머리 이모지·마크다운 제거)
+        boundaries.append((i, f"{kind} {num}. {rest}"))
 
     if not boundaries:
         return [], [], 0
@@ -173,7 +188,7 @@ def parse_sections(content: str) -> tuple[list[dict], list[dict], int]:
         end = boundaries[idx + 1][0] if idx + 1 < len(boundaries) else len(lines)
         block = lines[start + 1:end]
 
-        label_idx = next((j for j, l in enumerate(block) if l.strip() == _VOCAB_LABEL), None)
+        label_idx = next((j for j, l in enumerate(block) if _VOCAB_LABEL.match(l.strip())), None)
         if label_idx is None:
             body_lines, vocab_lines = block, []
         else:
@@ -223,6 +238,8 @@ def process_file(service, date_display: str, file: dict) -> tuple[bool, int]:
     sections, vocab, skipped = parse_sections(raw_text)
     if not sections:
         print(f"  [경고] [{date_display}] '클러스터'/'그룹' 섹션 패턴을 찾을 수 없습니다. 건너뜀.")
+        # GitHub Actions 실행 화면 상단 Annotations 에도 표시 (스텝은 성공으로 끝나므로)
+        print(f"::warning title=WSJ 수집 건너뜀::{file['name']} 에서 클러스터 제목을 찾지 못해 저장하지 않았습니다.")
         return False, 0
 
     os.makedirs(WSJ_DIR, exist_ok=True)
