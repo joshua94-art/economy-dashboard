@@ -471,6 +471,48 @@
     }
     .vocab-meaning { font-size: 0.82rem; color: var(--text); line-height: 1.6; }
 
+    /* ── 블로그 글 ── */
+    .blog-entry {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+    }
+    .blog-entry-head {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 16px; cursor: pointer; transition: background 0.15s;
+    }
+    .blog-entry-head:hover { background: var(--bg-card-hover); }
+    .blog-entry-body { padding: 4px 20px 18px; border-top: 1px solid var(--border); }
+    .blog-entry-body[hidden] { display: none; }
+    .blog-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 12px; }
+    .blog-title-row .news-detail-title { margin-bottom: 0; }
+    .blog-badge {
+      display: inline-block; font-size: 0.7rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 12px; white-space: nowrap;
+      color: var(--text-sub); background: rgba(87,96,106,0.08); border: 1px solid var(--border);
+    }
+    .blog-badge.cat-macro { color: var(--blue);   background: rgba(9,105,218,0.08);  border-color: rgba(9,105,218,0.3); }
+    .blog-badge.cat-intl  { color: var(--purple); background: rgba(130,80,223,0.08); border-color: rgba(130,80,223,0.3); }
+    .blog-badge.cat-risk  { color: var(--up);     background: rgba(207,34,46,0.07);  border-color: rgba(207,34,46,0.3); }
+    .blog-body { white-space: pre-wrap; }
+    .blog-cands { margin-top: 22px; }
+    .blog-cands + .blog-cands { margin-top: 16px; }
+    .blog-cand-list { display: flex; flex-direction: column; gap: 10px; }
+    .blog-cand { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+    .blog-cand-name { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .blog-cand-source { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px; }
+    .blog-cand-row { font-size: 0.8rem; line-height: 1.7; color: var(--text); word-break: keep-all; }
+    .blog-cand-row b { color: var(--blue); font-weight: 600; margin-right: 4px; }
+    .blog-sources {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+      margin-top: 20px; padding-top: 12px; border-top: 1px dashed var(--border);
+      font-size: 0.7rem; color: var(--text-sub);
+    }
+    .blog-sources .mono { font-family: 'JetBrains Mono', monospace; }
+    .blog-only-hk {
+      font-size: 0.66rem; font-weight: 700; color: var(--orange);
+      padding: 1px 7px; border-radius: 10px; border: 1px solid rgba(191,135,0,0.35);
+    }
+
     /* ── 반응형 ── */
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2,1fr); }
@@ -779,12 +821,11 @@
 
 <!-- 탭: 블로그 글 -->
 <div id="tab-blog" class="content" style="display:none">
-  <header><h1>✍️ 블로그 글</h1></header>
-  <div class="placeholder-wrap">
-    <div class="icon">✍️</div>
-    <h2>블로그 글</h2>
-    <p>경제 분석 글, 투자 일지 등이 이 탭에 추가될 예정입니다.</p>
-  </div>
+  <header>
+    <h1>✍️ 블로그 글</h1>
+    <span class="updated-at" id="blog-updated-at"></span>
+  </header>
+  <div id="blog-list" class="news-list"></div>
 </div>
 
 <!-- 누적 흐름 패널 (position:fixed — 탭 외부) -->
@@ -1642,6 +1683,113 @@
 
   loadWsjIndex();
   loadVocabIndex();
+
+  // ── 블로그 글 (data/blog/) ──────────────────────────────
+  // 최신 날짜 하나만 펼쳐 두고, 나머지는 날짜를 누르면 그때 불러와 펼친다.
+  const BLOG_CACHE = {};
+  const BLOG_CAT_CLASS = { '거시경제 위성': 'cat-macro', '국제경제 레이더': 'cat-intl', '리스크 경보실': 'cat-risk' };
+
+  async function fetchBlogDate(date) {
+    if (BLOG_CACHE[date]) return BLOG_CACHE[date];
+    const res = await fetch(`data/blog/${date}.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error();
+    BLOG_CACHE[date] = await res.json();
+    return BLOG_CACHE[date];
+  }
+
+  function renderBlogCandidates(title, items, rows) {
+    if (!items || !items.length) return '';
+    return `
+      <div class="blog-cands">
+        <div class="section-title">${title}</div>
+        <div class="blog-cand-list">
+          ${items.map(c => `
+            <div class="blog-cand">
+              <div class="blog-cand-name">${esc(c[rows.name] || '')}</div>
+              ${c.source ? `<div class="blog-cand-source">근거: ${esc(c.source)}</div>` : ''}
+              ${rows.fields.filter(([k]) => c[k]).map(([k, label]) =>
+                `<div class="blog-cand-row"><b>${label}</b>${esc(c[k])}</div>`).join('')}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  function renderBlogPost(p) {
+    const cat = p.category || '';
+    const sd = p.source_dates || {};
+    const onlyHk = sd.wsj === null || sd.wsj === undefined;
+    const industry = renderBlogCandidates('산업정탐 지도 후보', p.industry_candidates, {
+      name: 'industry', fields: [['research_question', '조사할 것']],
+    });
+    const company = renderBlogCandidates('기업정찰 노트 후보', p.company_candidates, {
+      name: 'company', fields: [['why', '왜 볼 만한가'], ['platform_check', '① 플랫폼'], ['bottleneck_check', '② 병목']],
+    });
+    return `
+      <div class="blog-title-row">
+        ${cat ? `<span class="blog-badge ${BLOG_CAT_CLASS[cat] || ''}">${esc(cat)}</span>` : ''}
+        <h1 class="news-detail-title">${esc(p.title || p.date || '')}</h1>
+      </div>
+      <div class="news-content blog-body">${esc(p.body || '')}</div>
+      ${industry}${company}
+      <div class="blog-sources">
+        <span>출처</span>
+        <span>한경 <span class="mono">${esc(sd.hankyung || '—')}</span></span>
+        <span>WSJ <span class="mono">${onlyHk ? '—' : esc(sd.wsj)}</span></span>
+        <span>시장 <span class="mono">${esc(sd.market || '—')}</span></span>
+        ${onlyHk ? '<span class="blog-only-hk">한경만</span>' : ''}
+      </div>`;
+  }
+
+  async function toggleBlogEntry(entry, open) {
+    const body = entry.querySelector('.blog-entry-body');
+    const arrow = entry.querySelector('.news-card-arrow');
+    const opening = open ?? body.hidden;
+    body.hidden = !opening;
+    arrow.textContent = opening ? '▾' : '›';
+    if (!opening || body.dataset.loaded) return;
+    const date = entry.dataset.date;
+    body.innerHTML = '<div class="report-msg">로딩 중...</div>';
+    try {
+      body.innerHTML = renderBlogPost(await fetchBlogDate(date));
+      body.dataset.loaded = '1';
+    } catch {
+      body.innerHTML = `<div class="report-msg">${esc(date)} 블로그 글을 불러올 수 없습니다.</div>`;
+    }
+  }
+
+  async function loadBlogIndex() {
+    const listEl = document.getElementById('blog-list');
+    const countEl = document.getElementById('blog-updated-at');
+    try {
+      const res = await fetch(`data/blog/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const dates = (idx.dates || []).slice().sort().reverse();
+      if (!dates.length) {
+        listEl.innerHTML = '<div class="report-msg">아직 생성된 블로그 글이 없습니다.</div>';
+        countEl.textContent = '';
+        return;
+      }
+      countEl.textContent = `총 ${dates.length}건`;
+      listEl.innerHTML = dates.map(d => `
+        <div class="blog-entry" data-date="${esc(d)}">
+          <div class="blog-entry-head">
+            <span class="news-card-date">${esc(d)}</span>
+            <span class="news-card-arrow">›</span>
+          </div>
+          <div class="blog-entry-body" hidden></div>
+        </div>
+      `).join('');
+      listEl.querySelectorAll('.blog-entry').forEach(entry => {
+        entry.querySelector('.blog-entry-head').addEventListener('click', () => toggleBlogEntry(entry));
+      });
+      toggleBlogEntry(listEl.querySelector('.blog-entry'), true);
+    } catch {
+      listEl.innerHTML = '<div class="report-msg">블로그 글 목록을 불러올 수 없습니다.</div>';
+    }
+  }
+
+  loadBlogIndex();
 </script>
 </body>
 </html>

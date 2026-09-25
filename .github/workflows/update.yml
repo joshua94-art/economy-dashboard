@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 데이터 디렉토리 생성
-        run: mkdir -p data data/reports data/kb_reports data/economy_news data/wsj
+        run: mkdir -p data data/reports data/kb_reports data/economy_news data/wsj data/blog
 
       - name: 시장 데이터 수집
         env:
@@ -63,6 +63,12 @@ jobs:
         run: python scripts/fetch_wsj.py
         continue-on-error: true
 
+      - name: 블로그 초안 생성
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/generate_blog.py
+        continue-on-error: true   # 블로그 생성이 실패해도 뉴스 데이터 커밋은 진행
+
       - name: Git 설정
         run: |
           git config user.name "github-actions[bot]"
@@ -74,6 +80,6 @@ jobs:
 
       - name: 변경사항 커밋 및 푸시
         run: |
-          git add data/market_data.json data/reports/ data/kb_reports/ data/economy_news/ data/wsj/ data/usage_log.jsonl
+          git add data/market_data.json data/reports/ data/kb_reports/ data/economy_news/ data/wsj/ data/blog/ data/style/ data/usage_log.jsonl
           git diff --staged --quiet || git commit -m "📊 데이터 업데이트: $(TZ='Asia/Seoul' date +'%Y-%m-%d %H:%M KST')"
           git push
