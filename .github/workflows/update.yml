@@ -64,10 +64,19 @@ jobs:
         continue-on-error: true
 
       - name: 블로그 초안 생성
+        id: blog
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/generate_blog.py
         continue-on-error: true   # 블로그 생성이 실패해도 뉴스 데이터 커밋은 진행
+
+      - name: 블로그 실패 시 원본 응답 보관
+        if: steps.blog.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: blog-debug
+          path: build/
+          retention-days: 7
 
       - name: Git 설정
         run: |

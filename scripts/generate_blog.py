@@ -322,11 +322,57 @@ def extract_post(resp) -> tuple[dict | None, str]:
             missing = [k for k in POST_TOOL["input_schema"]["required"] if k not in post]
             if missing:
                 return None, f"필수 필드 누락: {missing}"
+            # 모델이 배열 필드를 JSON 문자열로 감싸 보내는 경우가 있어 한 번 풀어 준다
+            for key in ("posts", "industry_candidates", "company_candidates"):
+                val, note = _unwrap_json_array(post.get(key))
+                if note:
+                    print(f"  [보정] {key}: {note}")
+                if val is None:
+                    if key == "posts":
+                        return None, f"posts 형식 오류 — {note or type(post.get(key)).__name__}"
+                    val = []   # 추천 카드는 없어도 글은 저장
+                post[key] = val
             posts = post["posts"]
-            if not isinstance(posts, list) or not posts or not all(isinstance(p, dict) for p in posts):
-                return None, "posts 가 비어 있거나 형식이 잘못됨"
+            if not posts or not all(isinstance(p, dict) for p in posts):
+                return None, "posts 가 비어 있거나 항목이 객체가 아님"
+            for p in posts:
+                p["basis"] = _normalize_basis(p.get("basis"))
             return post, ""
     return None, "save_blog_post 도구 호출이 없음"
+
+
+def _unwrap_json_array(val) -> tuple[list | None, str]:
+    """배열이면 그대로, 문자열이면 JSON 으로 풀어 배열인지 확인. (값 또는 None, 보정/오류 메모)"""
+    if isinstance(val, list):
+        # 항목이 문자열로 한 번 더 감싸져 온 경우도 푼다
+        if any(isinstance(x, str) for x in val):
+            try:
+                return [json.loads(x) if isinstance(x, str) else x for x in val], "항목이 문자열로 와서 풀었음"
+            except json.JSONDecodeError as e:
+                return None, f"항목 문자열 JSON 파싱 실패: {e}"
+        return val, ""
+    if isinstance(val, str):
+        try:
+            parsed = json.loads(val)
+        except json.JSONDecodeError as e:
+            return None, f"문자열로 왔고 JSON 파싱도 실패: {e}"
+        if isinstance(parsed, list):
+            return parsed, "문자열로 와서 JSON 으로 풀었음"
+        return None, f"문자열을 풀었지만 배열이 아님 ({type(parsed).__name__})"
+    return None, f"배열이 아님 ({type(val).__name__})"
+
+
+_BASIS_ALIASES = {
+    "한경": "한경", "한국경제": "한경", "한국경제신문": "한경", "hankyung": "한경", "hk": "한경",
+    "wsj": "WSJ", "월스트리트저널": "WSJ", "wallstreetjournal": "WSJ",
+}
+
+
+def _normalize_basis(b) -> str | None:
+    """'wsj', '월스트리트저널', '한국경제' 등 표기 차이를 '한경' / 'WSJ' 로 맞춘다."""
+    if not isinstance(b, str):
+        return b
+    return _BASIS_ALIASES.get(b.replace(" ", "").lower(), b)
 
 
 # ── 저장 ─────────────────────────────────────────────────────────────────────────
@@ -436,6 +482,8 @@ def main() -> None:
             f.write(resp.model_dump_json(indent=2))
         print(f"  [오류] 응답 처리 실패: {reason}")
         print(f"  원본 응답 저장:     {raw_path}")
+        # 워크플로에서 continue-on-error 로 스텝이 '성공'처럼 보이므로 Annotations 에 오류를 남긴다
+        print(f"::error title=블로그 생성 실패::응답 처리 실패 — {reason} (원본 응답은 blog-debug 아티팩트)")
         sys.exit(1)
 
     # 10. 편수 상한 적용 — basis 별 상한을 넘는 글은 버린다
@@ -444,6 +492,7 @@ def main() -> None:
         print(f"  [보정] 글 제외 — {d}")
     if not post["posts"]:
         print("  [오류] 남은 글이 없습니다. 저장하지 않습니다.")
+        print("::error title=블로그 생성 실패::편수 규칙에 맞는 글이 없어 저장하지 않았습니다.")
         sys.exit(1)
 
     # 11. 저장 — date 는 모델 출력과 무관하게 파일명(오늘, KST)으로 강제
