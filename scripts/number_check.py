@@ -134,10 +134,14 @@ def _matches(q: dict, src: list[dict], bare: list[float]) -> bool:
 
 
 def _fields(post: dict):
-    """(필드 경로, 문자열) 을 순회."""
+    """(필드 경로, 문자열) 을 순회. posts 배열(하루 여러 편)과 예전 단일 글 형식 모두 지원."""
     for key in ("title", "body"):
         if isinstance(post.get(key), str):
             yield key, post[key]
+    for i, p in enumerate(post.get("posts") or []):
+        for key in ("title", "body"):
+            if isinstance((p or {}).get(key), str):
+                yield f"posts[{i}].{key}", p[key]
     for key in ("industry_candidates", "company_candidates"):
         for i, c in enumerate(post.get(key) or []):
             for k, v in (c or {}).items():

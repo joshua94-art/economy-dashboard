@@ -494,6 +494,12 @@
     .blog-badge.cat-intl  { color: var(--purple); background: rgba(130,80,223,0.08); border-color: rgba(130,80,223,0.3); }
     .blog-badge.cat-risk  { color: var(--up);     background: rgba(207,34,46,0.07);  border-color: rgba(207,34,46,0.3); }
     .blog-body { white-space: pre-wrap; }
+    .blog-post + .blog-post { margin-top: 26px; padding-top: 6px; border-top: 1px dashed var(--border); }
+    .blog-basis {
+      font-size: 0.66rem; font-weight: 600; color: var(--text-sub); white-space: nowrap;
+      padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg);
+    }
+    .blog-entry-count { font-family: 'Noto Sans KR', sans-serif; font-size: 0.72rem; font-weight: 500; color: var(--text-sub); margin-left: 8px; }
     .blog-cands { margin-top: 22px; }
     .blog-cands + .blog-cands { margin-top: 16px; }
     .blog-cand-list { display: flex; flex-direction: column; gap: 10px; }
@@ -508,7 +514,7 @@
       font-size: 0.7rem; color: var(--text-sub);
     }
     .blog-sources .mono { font-family: 'JetBrains Mono', monospace; }
-    .blog-only-hk {
+    .blog-only-src {
       font-size: 0.66rem; font-weight: 700; color: var(--orange);
       padding: 1px 7px; border-radius: 10px; border: 1px solid rgba(191,135,0,0.35);
     }
@@ -1714,10 +1720,28 @@
       </div>`;
   }
 
+  // 예전 단일 글 형식({category,title,body})도 posts 배열로 맞춘다
+  function blogPosts(p) {
+    return Array.isArray(p.posts) ? p.posts : [{ category: p.category, title: p.title, body: p.body }];
+  }
+
+  function renderBlogArticle(a) {
+    const cat = a.category || '';
+    return `
+      <div class="blog-post">
+        <div class="blog-title-row">
+          ${a.basis ? `<span class="blog-basis">${esc(a.basis)} 기반</span>` : ''}
+          ${cat ? `<span class="blog-badge ${BLOG_CAT_CLASS[cat] || ''}">${esc(cat)}</span>` : ''}
+          <h1 class="news-detail-title">${esc(a.title || '')}</h1>
+        </div>
+        <div class="news-content blog-body">${esc(a.body || '')}</div>
+      </div>`;
+  }
+
   function renderBlogPost(p) {
-    const cat = p.category || '';
     const sd = p.source_dates || {};
     const onlyHk = sd.wsj === null || sd.wsj === undefined;
+    const onlyWsj = !onlyHk && (sd.hankyung === null || sd.hankyung === undefined);
     const industry = renderBlogCandidates('산업정탐 지도 후보', p.industry_candidates, {
       name: 'industry', fields: [['research_question', '조사할 것']],
     });
@@ -1725,18 +1749,15 @@
       name: 'company', fields: [['why', '왜 볼 만한가'], ['platform_check', '① 플랫폼'], ['bottleneck_check', '② 병목']],
     });
     return `
-      <div class="blog-title-row">
-        ${cat ? `<span class="blog-badge ${BLOG_CAT_CLASS[cat] || ''}">${esc(cat)}</span>` : ''}
-        <h1 class="news-detail-title">${esc(p.title || p.date || '')}</h1>
-      </div>
-      <div class="news-content blog-body">${esc(p.body || '')}</div>
+      ${blogPosts(p).map(renderBlogArticle).join('')}
       ${industry}${company}
       <div class="blog-sources">
         <span>출처</span>
-        <span>한경 <span class="mono">${esc(sd.hankyung || '—')}</span></span>
+        <span>한경 <span class="mono">${onlyWsj ? '—' : esc(sd.hankyung || '—')}</span></span>
         <span>WSJ <span class="mono">${onlyHk ? '—' : esc(sd.wsj)}</span></span>
         <span>시장 <span class="mono">${esc(sd.market || '—')}</span></span>
-        ${onlyHk ? '<span class="blog-only-hk">한경만</span>' : ''}
+        ${onlyHk ? '<span class="blog-only-src">한경만</span>' : ''}
+        ${onlyWsj ? '<span class="blog-only-src">WSJ만</span>' : ''}
       </div>`;
   }
 
@@ -1750,7 +1771,9 @@
     const date = entry.dataset.date;
     body.innerHTML = '<div class="report-msg">로딩 중...</div>';
     try {
-      body.innerHTML = renderBlogPost(await fetchBlogDate(date));
+      const data = await fetchBlogDate(date);
+      body.innerHTML = renderBlogPost(data);
+      entry.querySelector('.blog-entry-count').textContent = `글 ${blogPosts(data).length}편`;
       body.dataset.loaded = '1';
     } catch {
       body.innerHTML = `<div class="report-msg">${esc(date)} 블로그 글을 불러올 수 없습니다.</div>`;
@@ -1774,7 +1797,7 @@
       listEl.innerHTML = dates.map(d => `
         <div class="blog-entry" data-date="${esc(d)}">
           <div class="blog-entry-head">
-            <span class="news-card-date">${esc(d)}</span>
+            <span class="news-card-date">${esc(d)}<span class="blog-entry-count"></span></span>
             <span class="news-card-arrow">›</span>
           </div>
           <div class="blog-entry-body" hidden></div>
