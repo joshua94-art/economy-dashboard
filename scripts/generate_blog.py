@@ -85,7 +85,7 @@ INSTRUCTIONS = """\
   주재료가 아닌 쪽 신문과 <market_data> 는 보조 재료로 함께 써도 된다.
 - 같은 날 글끼리 소재가 겹치지 않게 한다.
 - 위 편수는 상한이다. 쓸 만한 소재가 부족하면 억지로 채우지 말고 편수를 줄인다. (최소 1편)
-- posts 는 한경 기반 글을 먼저, WSJ 기반 글을 뒤에 둔다.
+- 한경 기반 글을 앞 칸(post1 부터)에, WSJ 기반 글을 뒤 칸에 둔다.
 
 ## 3. 카테고리 판정 (글마다)
 - 아래 3개 중 하나를 고른다: 거시경제 위성 / 국제경제 레이더 / 리스크 경보실
@@ -113,8 +113,25 @@ INSTRUCTIONS = """\
   - source 는 "(한경|WSJ) 기사 제목" 형태로 쓴다.
 
 ## 6. 출력 형식
-- 결과는 save_blog_post 도구를 한 번 호출해서 제출한다. 모든 글을 posts 배열에 담는다.
+- 결과는 save_blog_post 도구를 한 번 호출해서 제출한다.
+- 글 1편은 post1_basis / post1_category / post1_title / post1_body 칸에, 2편은 post2_*, 3편은 post3_* 칸에 담는다.
+  쓰지 않는 칸은 생략한다.
 - source_dates 에는 <hankyung>, <wsj> 의 date 속성과 <market_data> 의 updated_at 을 그대로 넣는다."""
+
+# 글 목록을 배열(posts)로 받으면, 긴 본문이 든 배열을 모델이 JSON 문자열로 감싸 보내다
+# 따옴표 이스케이프가 깨지는 일이 반복됐다. 그래서 글마다 최상위 필드(post1_* ~ post3_*)로 받고,
+# 저장할 때 posts 배열로 모은다. 저장 형식과 화면은 그대로.
+MAX_POST_SLOTS = 3
+POST_FIELDS = ("basis", "category", "title", "body")
+POST_SLOT_PROPS: dict = {}
+for _i in range(1, MAX_POST_SLOTS + 1):
+    POST_SLOT_PROPS.update({
+        f"post{_i}_basis": {"type": "string", "enum": ["한경", "WSJ"], "description": f"{_i}번째 글의 주재료 신문"},
+        f"post{_i}_category": {"type": "string", "enum": CATEGORIES},
+        f"post{_i}_title": {"type": "string", "description": f"{_i}번째 글 제목"},
+        f"post{_i}_body": {"type": "string", "description": f"{_i}번째 글 본문 전체 (인사말부터 면책 문구까지)"},
+    })
+POST_SLOT_REQUIRED = [f"post1_{f}" for f in POST_FIELDS]   # 최소 1편
 
 POST_TOOL = {
     "name": "save_blog_post",
@@ -123,20 +140,7 @@ POST_TOOL = {
         "type": "object",
         "properties": {
             "date": {"type": "string", "description": "YYYY-MM-DD"},
-            "posts": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "basis": {"type": "string", "enum": ["한경", "WSJ"], "description": "주재료가 된 신문"},
-                        "category": {"type": "string", "enum": CATEGORIES},
-                        "title": {"type": "string", "description": "글 제목"},
-                        "body": {"type": "string", "description": "본문 전체 (인사말부터 면책 문구까지)"},
-                    },
-                    "required": ["basis", "category", "title", "body"],
-                },
-            },
+            **POST_SLOT_PROPS,
             "source_dates": {
                 "type": "object",
                 "properties": {
@@ -173,7 +177,7 @@ POST_TOOL = {
                 },
             },
         },
-        "required": ["date", "posts", "source_dates", "industry_candidates", "company_candidates"],
+        "required": ["date", *POST_SLOT_REQUIRED, "source_dates", "industry_candidates", "company_candidates"],
     },
 }
 
@@ -322,21 +326,23 @@ def extract_post(resp) -> tuple[dict | None, str]:
             missing = [k for k in POST_TOOL["input_schema"]["required"] if k not in post]
             if missing:
                 return None, f"필수 필드 누락: {missing}"
-            # 모델이 배열 필드를 JSON 문자열로 감싸 보내는 경우가 있어 한 번 풀어 준다
-            for key in ("posts", "industry_candidates", "company_candidates"):
+            # post1_* ~ post3_* 칸을 posts 배열로 모은다 (제목·본문이 빈 칸은 쓰지 않은 칸)
+            posts = []
+            for i in range(1, MAX_POST_SLOTS + 1):
+                slot = {f: post.pop(f"post{i}_{f}", None) for f in POST_FIELDS}
+                if isinstance(slot["title"], str) and slot["title"].strip() \
+                        and isinstance(slot["body"], str) and slot["body"].strip():
+                    slot["basis"] = _normalize_basis(slot["basis"])
+                    posts.append(slot)
+            if not posts:
+                return None, "제목·본문이 채워진 글이 없음"
+            post["posts"] = posts
+            # 추천 카드 배열이 JSON 문자열로 오는 경우 한 번 풀어 준다 (실패하면 카드만 비움)
+            for key in ("industry_candidates", "company_candidates"):
                 val, note = _unwrap_json_array(post.get(key))
                 if note:
                     print(f"  [보정] {key}: {note}")
-                if val is None:
-                    if key == "posts":
-                        return None, f"posts 형식 오류 — {note or type(post.get(key)).__name__}"
-                    val = []   # 추천 카드는 없어도 글은 저장
-                post[key] = val
-            posts = post["posts"]
-            if not posts or not all(isinstance(p, dict) for p in posts):
-                return None, "posts 가 비어 있거나 항목이 객체가 아님"
-            for p in posts:
-                p["basis"] = _normalize_basis(p.get("basis"))
+                post[key] = val if val is not None else []
             return post, ""
     return None, "save_blog_post 도구 호출이 없음"
 
