@@ -7,6 +7,7 @@
 """
 
 import json
+import math
 import os
 from datetime import datetime
 
@@ -37,6 +38,8 @@ def get_price_data(ticker_str: str) -> dict | None:
     """yfinance로 현재가 / 전일비 / 등락률 조회"""
     try:
         hist = yf.Ticker(ticker_str).history(period="5d")
+        # 한국 종목은 장 시작 전에 당일 행이 종가 NaN 으로 붙어 오는 경우가 있다 → 빈 행 제외
+        hist = hist.dropna(subset=["Close"])
         if len(hist) < 2:
             return None
         current = float(hist["Close"].iloc[-1])
@@ -363,11 +366,36 @@ def main() -> None:
         "briefing":          "",   # generate_comments.py가 채움
     }
 
+    # NaN/Infinity 는 브라우저가 JSON 으로 읽지 못해 대시보드 전체가 멈춘다 → null 로 저장
+    data, n_fixed = _replace_nan(data)
+    if n_fixed:
+        print(f"  [WARN] NaN/Infinity 값 {n_fixed}개를 null 로 바꿔 저장합니다.")
+
     os.makedirs("data", exist_ok=True)
     with open("data/market_data.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2, allow_nan=False)
 
     print(f"완료: data/market_data.json 저장 ({updated_at})")
+
+
+def _replace_nan(obj) -> tuple[object, int]:
+    """dict/list 안의 NaN·Infinity 를 None 으로 바꾼다. (결과, 바꾼 개수)"""
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return None, 1
+    if isinstance(obj, dict):
+        total, out = 0, {}
+        for k, v in obj.items():
+            out[k], n = _replace_nan(v)
+            total += n
+        return out, total
+    if isinstance(obj, list):
+        total, out = 0, []
+        for v in obj:
+            nv, n = _replace_nan(v)
+            out.append(nv)
+            total += n
+        return out, total
+    return obj, 0
 
 
 if __name__ == "__main__":
